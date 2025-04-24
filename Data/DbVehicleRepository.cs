@@ -1,32 +1,59 @@
 using Microsoft.EntityFrameworkCore;
 using AutoFiCore.Models;
+using Microsoft.Extensions.Logging;
 
 namespace AutoFiCore.Data;
 
 public class DbVehicleRepository : IVehicleRepository
 {
-    private readonly AutoFiDbContext _dbContext;
+    private readonly ApplicationDbContext _dbContext;
+    private readonly ILogger<DbVehicleRepository> _logger;
 
-    public DbVehicleRepository(AutoFiDbContext dbContext)
+    public DbVehicleRepository(ApplicationDbContext dbContext, ILogger<DbVehicleRepository> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync()
     {
-        return await _dbContext.Vehicles.ToListAsync();
+        try
+        {
+            return await _dbContext.Vehicles.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all vehicles");
+            throw;
+        }
     }
 
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
-        return await _dbContext.Vehicles.FindAsync(id);
+        try
+        {
+            return await _dbContext.Vehicles.FindAsync(id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle with ID {Id}", id);
+            throw;
+        }
     }
 
     public async Task<Vehicle> AddVehicleAsync(Vehicle vehicle)
     {
-        _dbContext.Vehicles.Add(vehicle);
-        await _dbContext.SaveChangesAsync();
-        return vehicle;
+        try
+        {
+            _dbContext.Vehicles.Add(vehicle);
+            await _dbContext.SaveChangesAsync();
+            return vehicle;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding vehicle with VIN {Vin}", vehicle.Vin);
+            throw;
+        }
     }
 
     public async Task<bool> UpdateVehicleAsync(Vehicle vehicle)
@@ -48,13 +75,21 @@ public class DbVehicleRepository : IVehicleRepository
 
     public async Task<bool> DeleteVehicleAsync(int id)
     {
-        var vehicle = await _dbContext.Vehicles.FindAsync(id);
-        if (vehicle == null)
-            return false;
+        try
+        {
+            var vehicle = await _dbContext.Vehicles.FindAsync(id);
+            if (vehicle == null)
+                return false;
 
-        _dbContext.Vehicles.Remove(vehicle);
-        await _dbContext.SaveChangesAsync();
-        return true;
+            _dbContext.Vehicles.Remove(vehicle);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting vehicle with ID {Id}", id);
+            throw;
+        }
     }
 
     private bool VehicleExists(int id)

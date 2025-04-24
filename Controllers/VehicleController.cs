@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using AutoFiCore.Data;
 using AutoFiCore.Models;
+using AutoFiCore.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AutoFiCore.Controllers;
 
@@ -8,65 +8,131 @@ namespace AutoFiCore.Controllers;
 [Route("[controller]")]
 public class VehicleController : ControllerBase
 {
-    private readonly IVehicleRepository _vehicleRepository;
+    private readonly IVehicleService _vehicleService;
     private readonly ILogger<VehicleController> _logger;
 
-    public VehicleController(IVehicleRepository vehicleRepository, ILogger<VehicleController> logger)
+    public VehicleController(IVehicleService vehicleService, ILogger<VehicleController> logger)
     {
-        _vehicleRepository = vehicleRepository;
+        _vehicleService = vehicleService;
         _logger = logger;
     }
 
-    [HttpGet(Name = "GetVehicles")]
-    public async Task<ActionResult<IEnumerable<Vehicle>>> Get()
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Vehicle>>> GetAllVehicles()
     {
-        return Ok(await _vehicleRepository.GetAllVehiclesAsync());
+        try
+        {
+            var vehicles = await _vehicleService.GetAllVehiclesAsync();
+            return Ok(vehicles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all vehicles");
+            return StatusCode(500, "An error occurred while retrieving vehicles");
+        }
     }
 
-    [HttpGet("{id}", Name = "GetVehicleById")]
-    public async Task<ActionResult<Vehicle>> Get(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Vehicle>> GetVehicleById(int id)
     {
-        var vehicle = await _vehicleRepository.GetVehicleByIdAsync(id);
-        if (vehicle == null)
+        try
         {
-            return NotFound();
+            var vehicle = await _vehicleService.GetVehicleByIdAsync(id);
+            if (vehicle == null)
+            {
+                return NotFound($"Vehicle with ID {id} not found");
+            }
+            return Ok(vehicle);
         }
-        return Ok(vehicle);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle with ID {Id}", id);
+            return StatusCode(500, "An error occurred while retrieving the vehicle");
+        }
+    }
+
+    [HttpGet("vin/{vin}")]
+    public async Task<ActionResult<Vehicle>> GetVehicleByVin(string vin)
+    {
+        try
+        {
+            var vehicle = await _vehicleService.GetVehicleByVinAsync(vin);
+            if (vehicle == null)
+            {
+                return NotFound($"Vehicle with VIN {vin} not found");
+            }
+            return Ok(vehicle);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle with VIN {Vin}", vin);
+            return StatusCode(500, "An error occurred while retrieving the vehicle");
+        }
     }
 
     [HttpPost]
-    public async Task<ActionResult<Vehicle>> Post(Vehicle vehicle)
+    public async Task<ActionResult<Vehicle>> CreateVehicle(Vehicle vehicle)
     {
-        var result = await _vehicleRepository.AddVehicleAsync(vehicle);
-        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        try
+        {
+            var existingVehicle = await _vehicleService.GetVehicleByVinAsync(vehicle.Vin);
+            if (existingVehicle != null)
+            {
+                return BadRequest($"Vehicle with VIN {vehicle.Vin} already exists");
+            }
+
+            var createdVehicle = await _vehicleService.CreateVehicleAsync(vehicle);
+            return CreatedAtAction(nameof(GetVehicleById), new { id = createdVehicle.Id }, createdVehicle);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating vehicle with VIN {Vin}", vehicle.Vin);
+            return StatusCode(500, "An error occurred while creating the vehicle");
+        }
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, Vehicle vehicle)
+    public async Task<ActionResult<Vehicle>> UpdateVehicle(int id, Vehicle vehicle)
     {
-        if (id != vehicle.Id)
+        try
         {
-            return BadRequest();
-        }
+            if (id != vehicle.Id)
+            {
+                return BadRequest("ID mismatch");
+            }
 
-        var success = await _vehicleRepository.UpdateVehicleAsync(vehicle);
-        if (!success)
+            var existingVehicle = await _vehicleService.GetVehicleByIdAsync(id);
+            if (existingVehicle == null)
+            {
+                return NotFound($"Vehicle with ID {id} not found");
+            }
+
+            var updatedVehicle = await _vehicleService.UpdateVehicleAsync(vehicle);
+            return Ok(updatedVehicle);
+        }
+        catch (Exception ex)
         {
-            return NotFound();
+            _logger.LogError(ex, "Error updating vehicle with ID {Id}", id);
+            return StatusCode(500, "An error occurred while updating the vehicle");
         }
-
-        return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<ActionResult> DeleteVehicle(int id)
     {
-        var success = await _vehicleRepository.DeleteVehicleAsync(id);
-        if (!success)
+        try
         {
-            return NotFound();
+            var result = await _vehicleService.DeleteVehicleAsync(id);
+            if (!result)
+            {
+                return NotFound($"Vehicle with ID {id} not found");
+            }
+            return NoContent();
         }
-
-        return NoContent();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting vehicle with ID {Id}", id);
+            return StatusCode(500, "An error occurred while deleting the vehicle");
+        }
     }
 }
