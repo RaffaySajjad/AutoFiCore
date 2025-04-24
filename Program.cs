@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using AutoFiCore.Data;
+using AutoFiCore.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,10 +33,15 @@ var app = builder.Build();
 // Initialize database
 await DbInitializer.InitializeAsync(app.Services, app.Environment);
 
+// Add our execution time logging middleware
+app.UseRequestExecutionTimeLogging();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("OpenAPI Swagger UI available at: /swagger");
 }
 
 app.UseHttpsRedirection();
