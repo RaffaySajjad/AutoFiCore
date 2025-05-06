@@ -15,11 +15,13 @@ public class DbVehicleRepository : IVehicleRepository
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync()
+    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset)
     {
-        try
+        try 
         {
-            return await _dbContext.Vehicles.ToListAsync();
+            var result = await _dbContext.Vehicles.Skip(offset).Take(pageView).ToListAsync();
+            Console.WriteLine("Result = " + result);
+            return result;
         }
         catch (Exception ex)
         {

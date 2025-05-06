@@ -77,7 +77,7 @@ public class MockVehicleRepository : IVehicleRepository
         }
     }
 
-    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync()
+    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset)
     {
         // Reload from file to get fresh data
         LoadVehiclesFromFile();

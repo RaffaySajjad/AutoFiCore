@@ -6,7 +6,8 @@ namespace AutoFiCore.Services;
 
 public interface IVehicleService
 {
-    Task<IEnumerable<Vehicle>> GetAllVehiclesAsync();
+    Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset);
+    Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<Vehicle?> GetVehicleByIdAsync(int id);
     Task<Vehicle?> GetVehicleByVinAsync(string vin);
     Task<Vehicle> CreateVehicleAsync(Vehicle vehicle);
@@ -23,17 +24,30 @@ public class VehicleService : IVehicleService
     {
         _repository = repository;
         _logger = logger;
-    }
-
-    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync()
+    } 
+    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset)
     {
         try
         {
-            return await _repository.GetAllVehiclesAsync();
+            return await _repository.GetAllVehiclesAsync(pageView, offset);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all vehicles");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make)
+    {
+        try
+        {
+            var vehicles = await _repository.GetAllVehiclesAsync(pageView, offset);
+            return vehicles.Where(v => v.Make.Equals(make, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicles by make {Make}", make);
             throw;
         }
     }
@@ -55,7 +69,7 @@ public class VehicleService : IVehicleService
     {
         try
         {
-            var vehicles = await _repository.GetAllVehiclesAsync();
+            var vehicles = await _repository.GetAllVehiclesAsync(10, 0);
             return vehicles.FirstOrDefault(v => v.Vin == vin);
         }
         catch (Exception ex)

@@ -1,11 +1,13 @@
 using AutoFiCore.Models;
 using AutoFiCore.Services;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutoFiCore.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+
 public class VehicleController : ControllerBase
 {
     private readonly IVehicleService _vehicleService;
@@ -18,11 +20,17 @@ public class VehicleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Vehicle>>> GetAllVehicles()
+    public async Task<ActionResult<IEnumerable<Vehicle>>> GetAllVehicles([FromQuery] int pageView, [FromQuery] int offset)
     {
         try
         {
-            var vehicles = await _vehicleService.GetAllVehiclesAsync();
+            if (pageView <= 0)
+                return BadRequest("'pageView' must be greater than 0.");
+
+            if (offset < 0)
+                return BadRequest("'offset' must be 0 or greater.");
+
+            var vehicles = await _vehicleService.GetAllVehiclesAsync(pageView, offset);
             return Ok(vehicles);
         }
         catch (Exception ex)
@@ -31,6 +39,29 @@ public class VehicleController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving vehicles");
         }
     }
+    [HttpGet("by-make")]
+    public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehiclesByMake([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string make)
+    {
+        try
+        {
+            if (pageView <= 0)
+                return BadRequest("'pageView' must be greater than 0.");
+
+            if (offset < 0)
+                return BadRequest("'offset' must be 0 or greater.");
+
+            if (string.IsNullOrWhiteSpace(make)) return BadRequest("'make' is required.");
+
+            var vehicles = await _vehicleService.GetVehiclesByMakeAsync(pageView, offset, make);
+            return Ok(vehicles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all vehicles");
+            return StatusCode(500, "An error occurred while retrieving vehicles");
+        }
+    }
+
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Vehicle>> GetVehicleById(int id)

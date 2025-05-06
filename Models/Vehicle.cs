@@ -38,4 +38,4 @@ public class Vehicle
 
     [StringLength(20)]
     public string? Transmission { get; set; }
-} 
+}
