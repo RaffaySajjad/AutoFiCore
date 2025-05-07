@@ -20,12 +20,29 @@ public class DbVehicleRepository : IVehicleRepository
         try 
         {
             var result = await _dbContext.Vehicles.Skip(offset).Take(pageView).ToListAsync();
-            Console.WriteLine("Result = " + result);
             return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all vehicles");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make)
+    {
+        try
+        {
+            var result = await _dbContext.Vehicles
+                .Where(v => v.Make.ToLower() == make.ToLower())
+                .Skip(offset)
+                .Take(pageView)
+                .ToListAsync();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error retrieving vehicles by make: {make}");
             throw;
         }
     }

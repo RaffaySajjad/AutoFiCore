@@ -2,7 +2,7 @@ using AutoFiCore.Models;
 using AutoFiCore.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-
+using AutoFiCore.Utilities;
 namespace AutoFiCore.Controllers;
 
 [ApiController]
@@ -24,11 +24,10 @@ public class VehicleController : ControllerBase
     {
         try
         {
-            if (pageView <= 0)
-                return BadRequest("'pageView' must be greater than 0.");
+            var validationError = Validator.ValidatePagination(pageView, offset);
+            if (validationError != null)
+                return BadRequest(validationError);
 
-            if (offset < 0)
-                return BadRequest("'offset' must be 0 or greater.");
 
             var vehicles = await _vehicleService.GetAllVehiclesAsync(pageView, offset);
             return Ok(vehicles);
@@ -44,13 +43,15 @@ public class VehicleController : ControllerBase
     {
         try
         {
-            if (pageView <= 0)
-                return BadRequest("'pageView' must be greater than 0.");
+            make = make.Trim();
+            var paginationValidator = Validator.ValidatePagination(pageView, offset);
+            
+            if (paginationValidator != null)
+                return BadRequest(paginationValidator);
 
-            if (offset < 0)
-                return BadRequest("'offset' must be 0 or greater.");
-
-            if (string.IsNullOrWhiteSpace(make)) return BadRequest("'make' is required.");
+            var makeValidator = Validator.ValidateMake(make);
+            if (makeValidator != null)
+                return BadRequest(makeValidator);
 
             var vehicles = await _vehicleService.GetVehiclesByMakeAsync(pageView, offset, make);
             return Ok(vehicles);

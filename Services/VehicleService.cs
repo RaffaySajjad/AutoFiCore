@@ -42,8 +42,7 @@ public class VehicleService : IVehicleService
     {
         try
         {
-            var vehicles = await _repository.GetAllVehiclesAsync(pageView, offset);
-            return vehicles.Where(v => v.Make.Equals(make, StringComparison.OrdinalIgnoreCase));
+            return await _repository.GetVehiclesByMakeAsync(pageView, offset, make);
         }
         catch (Exception ex)
         {

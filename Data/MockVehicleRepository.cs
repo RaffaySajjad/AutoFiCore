@@ -84,6 +84,21 @@ public class MockVehicleRepository : IVehicleRepository
         return await Task.FromResult(_vehicles);
     }
 
+    public async Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make)
+    {
+        LoadVehiclesFromFile();
+
+        var filteredVehicles = _vehicles
+            .Where(v => v.Make.ToLower() == make.ToLower())
+            .Skip(offset)
+            .Take(pageView)
+            .ToList();
+
+
+        return await Task.FromResult(filteredVehicles);
+    }
+
+
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
         return await Task.FromResult(_vehicles.FirstOrDefault(v => v.Id == id));
