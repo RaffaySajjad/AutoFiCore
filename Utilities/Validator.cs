@@ -10,9 +10,9 @@
                 return "'offset' must be 0 or greater.";
             return null;
         }
-        public static string? ValidateMake(string make)
+        public static string? ValidateMakeOrModel(string makeORmodel)
         {
-            if (string.IsNullOrWhiteSpace(make) || make is null)
+            if (string.IsNullOrWhiteSpace(makeORmodel) || makeORmodel is null)
                 return "'make' is required.";
 
             return null;

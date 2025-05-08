@@ -47,6 +47,24 @@ public class DbVehicleRepository : IVehicleRepository
         }
     }
 
+    public async Task<IEnumerable<Vehicle>> GetVehiclesByModelAsync(int pageView, int offset, string model)
+    {
+        try
+        {
+            var result = await _dbContext.Vehicles
+                .Where(v => v.Model.ToLower() == model.ToLower())
+                .Skip(offset)
+                .Take(pageView)
+                .ToListAsync();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error retrieving vehicles by model: {model}");
+            throw;
+        }
+    }
+
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
         try

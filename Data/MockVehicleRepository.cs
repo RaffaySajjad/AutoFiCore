@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AutoFiCore.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace AutoFiCore.Data;
@@ -98,7 +99,16 @@ public class MockVehicleRepository : IVehicleRepository
         return await Task.FromResult(filteredVehicles);
     }
 
-
+    public async Task<IEnumerable<Vehicle>> GetVehiclesByModelAsync(int pageView, int offset, string model)
+    {
+        LoadVehiclesFromFile();
+        var filteredVehicles = _vehicles
+             .Where(v => v.Model.ToLower() == model.ToLower())
+             .Skip(offset)
+             .Take(pageView)
+             .ToList();
+        return await Task.FromResult(filteredVehicles);
+    }
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
         return await Task.FromResult(_vehicles.FirstOrDefault(v => v.Id == id));

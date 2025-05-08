@@ -49,11 +49,35 @@ public class VehicleController : ControllerBase
             if (paginationValidator != null)
                 return BadRequest(paginationValidator);
 
-            var makeValidator = Validator.ValidateMake(make);
+            var makeValidator = Validator.ValidateMakeOrModel(make);
             if (makeValidator != null)
                 return BadRequest(makeValidator);
 
             var vehicles = await _vehicleService.GetVehiclesByMakeAsync(pageView, offset, make);
+            return Ok(vehicles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all vehicles");
+            return StatusCode(500, "An error occurred while retrieving vehicles");
+        }
+    }
+    [HttpGet("by-model")]
+    public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehiclesByModel([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string model)
+    {
+        try
+        {
+            model = model.Trim();
+            var paginationValidator = Validator.ValidatePagination(pageView, offset);
+
+            if (paginationValidator != null)
+                return BadRequest(paginationValidator);
+
+            var modelValidator = Validator.ValidateMakeOrModel(model);
+            if (modelValidator != null)
+                return BadRequest(modelValidator);
+
+            var vehicles = await _vehicleService.GetVehiclesByModelAsync(pageView, offset, model);
             return Ok(vehicles);
         }
         catch (Exception ex)
