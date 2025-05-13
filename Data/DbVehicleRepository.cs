@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using AutoFiCore.Models;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AutoFiCore.Data;
 
@@ -19,7 +21,7 @@ public class DbVehicleRepository : IVehicleRepository
     {
         try 
         {
-            var result = await _dbContext.Vehicles.Skip(offset).Take(pageView).ToListAsync();
+            var result = await _dbContext.Vehicles.OrderBy(v=>v.Id).Skip(offset).Take(pageView).ToListAsync();
             return result;
         }
         catch (Exception ex)
@@ -29,11 +31,22 @@ public class DbVehicleRepository : IVehicleRepository
         }
     }
 
+    public async Task<List<string>> GetAllVehicleMakes()
+    {
+        var makes = await _dbContext.Vehicles
+            .Select(v => v.Make)
+            .Distinct()
+            .OrderBy(m => m)
+            .ToListAsync();
+
+        return await Task.FromResult(makes);
+    }
+
     public async Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make)
     {
         try
         {
-            var result = await _dbContext.Vehicles
+            var result = await _dbContext.Vehicles.OrderBy(v=>v.Id)
                 .Where(v => v.Make.ToLower() == make.ToLower())
                 .Skip(offset)
                 .Take(pageView)
@@ -51,7 +64,7 @@ public class DbVehicleRepository : IVehicleRepository
     {
         try
         {
-            var result = await _dbContext.Vehicles
+            var result = await _dbContext.Vehicles.OrderBy(v => v.Id)
                 .Where(v => v.Model.ToLower() == model.ToLower())
                 .Skip(offset)
                 .Take(pageView)

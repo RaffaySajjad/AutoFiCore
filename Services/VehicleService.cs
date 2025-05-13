@@ -9,6 +9,7 @@ public interface IVehicleService
     Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset);
     Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<IEnumerable<Vehicle>> GetVehiclesByModelAsync(int pageView, int offset, string make);
+    Task<List<string>> GetAllVehiclesMakesAsync();
     Task<Vehicle?> GetVehicleByIdAsync(int id);
     Task<Vehicle?> GetVehicleByVinAsync(string vin);
     Task<Vehicle> CreateVehicleAsync(Vehicle vehicle);
@@ -35,6 +36,19 @@ public class VehicleService : IVehicleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all vehicles");
+            throw;
+        }
+    }
+
+    public async Task<List<string>> GetAllVehiclesMakesAsync()
+    {
+        try
+        {
+            return await _repository.GetAllVehicleMakes();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle makes");
             throw;
         }
     }

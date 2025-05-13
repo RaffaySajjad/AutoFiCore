@@ -89,7 +89,7 @@ public class MockVehicleRepository : IVehicleRepository
     {
         LoadVehiclesFromFile();
 
-        var filteredVehicles = _vehicles
+        var filteredVehicles = _vehicles.OrderBy(v=>v.Id)
             .Where(v => v.Make.ToLower() == make.ToLower())
             .Skip(offset)
             .Take(pageView)
@@ -99,16 +99,29 @@ public class MockVehicleRepository : IVehicleRepository
         return await Task.FromResult(filteredVehicles);
     }
 
+    public async Task<List<string>> GetAllVehicleMakes()
+    {
+        LoadVehiclesFromFile();
+        var makes = _vehicles
+            .Select(v => v.Make)
+            .Distinct()
+            .OrderBy(m => m)
+            .ToList();
+
+        return await Task.FromResult(makes);
+    }
     public async Task<IEnumerable<Vehicle>> GetVehiclesByModelAsync(int pageView, int offset, string model)
     {
         LoadVehiclesFromFile();
-        var filteredVehicles = _vehicles
+        var filteredVehicles = _vehicles.OrderBy(v=>v.Id)
              .Where(v => v.Model.ToLower() == model.ToLower())
              .Skip(offset)
              .Take(pageView)
              .ToList();
         return await Task.FromResult(filteredVehicles);
     }
+
+   
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
         return await Task.FromResult(_vehicles.FirstOrDefault(v => v.Id == id));

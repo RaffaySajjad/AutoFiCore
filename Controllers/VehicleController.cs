@@ -87,6 +87,20 @@ public class VehicleController : ControllerBase
         }
     }
 
+    [HttpGet("get-makes")]
+    public async Task<ActionResult<IEnumerable<Vehicle>>> GetAllMakes()
+    {
+        try
+        {
+            var makes = await _vehicleService.GetAllVehiclesMakesAsync();
+            return Ok(makes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle makes");
+            return StatusCode(500, "An error occurred while retrieving vehicle makes");
+        }
+    }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Vehicle>> GetVehicleById(int id)
