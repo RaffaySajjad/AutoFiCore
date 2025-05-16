@@ -78,25 +78,89 @@ public class MockVehicleRepository : IVehicleRepository
         }
     }
 
-    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset)
+    public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)
     {
-        // Reload from file to get fresh data
-        LoadVehiclesFromFile();
-        return await Task.FromResult(_vehicles);
+        var totalVehicles = _vehicles.Count;
+
+        var vehicles = _vehicles
+        .OrderBy(v => v.Id)
+        .Skip(offset)
+        .Take(pageView)
+        .ToList();
+
+        var result = new VehicleListResult
+        {
+            Vehicles = vehicles,
+            TotalCount = totalVehicles,
+        };
+        return await Task.FromResult( result );
     }
 
-    public async Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make)
+    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make = null, string? model = null, decimal? startPrice = null, decimal? endPrice = null)
     {
-        LoadVehiclesFromFile();
+        try
+        {
+            var query = _vehicles.AsQueryable();
 
-        var filteredVehicles = _vehicles.OrderBy(v=>v.Id)
-            .Where(v => v.Make.ToLower() == make.ToLower())
+            if (!string.IsNullOrWhiteSpace(make) && make != "Any Makes")
+            {
+                query = query.Where(v => v.Make == make);
+            }
+
+            if (!string.IsNullOrWhiteSpace(model) && model != "Any Models")
+            {
+                query = query.Where(v => v.Model == model);
+            }
+
+
+            if (startPrice.HasValue)
+            {
+                query = query.Where(v => v.Price >= startPrice.Value);
+            }
+
+            if (endPrice.HasValue)
+            {
+                query = query.Where(v => v.Price <= endPrice.Value);
+            }
+
+            int totalCount = query.Count();
+
+            var vehicles = query
+                .OrderBy(v => v.Id)
+                .Skip(offset)
+                .Take(pageView)
+                .ToList();
+
+            return await Task.FromResult(new VehicleListResult
+            {
+                Vehicles = vehicles,
+                TotalCount = totalCount
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching vehicles");
+            throw;
+        }
+    }
+
+    public async Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make)
+    {
+       
+        var query = _vehicles.Where(v => v.Make.ToLower() == make.ToLower());
+        
+        var vehicles = query.OrderBy(v=>v.Id)
             .Skip(offset)
             .Take(pageView)
             .ToList();
 
+        var result = new VehicleListResult
+        {
+            Vehicles = vehicles,
+            TotalCount = vehicles.Count
+        };
 
-        return await Task.FromResult(filteredVehicles);
+        return await Task.FromResult(result);
     }
 
     public async Task<List<string>> GetAllVehicleMakes()
@@ -110,15 +174,22 @@ public class MockVehicleRepository : IVehicleRepository
 
         return await Task.FromResult(makes);
     }
-    public async Task<IEnumerable<Vehicle>> GetVehiclesByModelAsync(int pageView, int offset, string model)
+    public async Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string model)
     {
-        LoadVehiclesFromFile();
-        var filteredVehicles = _vehicles.OrderBy(v=>v.Id)
-             .Where(v => v.Model.ToLower() == model.ToLower())
-             .Skip(offset)
-             .Take(pageView)
-             .ToList();
-        return await Task.FromResult(filteredVehicles);
+        var query = _vehicles.Where(v => v.Model.ToLower() == model.ToLower());
+
+        var vehicles = query.OrderBy(v => v.Id)
+            .Skip(offset)
+            .Take(pageView)
+            .ToList();
+
+        var result = new VehicleListResult
+        {
+            Vehicles = vehicles,
+            TotalCount = vehicles.Count
+        };
+
+        return await Task.FromResult(result);
     }
 
    

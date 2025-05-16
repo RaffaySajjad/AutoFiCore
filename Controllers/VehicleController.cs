@@ -62,6 +62,29 @@ public class VehicleController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving vehicles");
         }
     }
+    [HttpGet("search-vehicles")]
+    public async Task<ActionResult<IEnumerable<Vehicle>>> SearchVehicles([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string? make, [FromQuery] string? model, [FromQuery] decimal? startPrice, [FromQuery] decimal? endPrice)
+    {
+        try
+        {
+            make = NormalizeInput.NormalizeMakeModel(make);
+            model = NormalizeInput.NormalizeMakeModel(model);
+
+            var priceValidator = Validator.ValidatePrice(startPrice, endPrice);
+            if (!priceValidator) 
+                return BadRequest(priceValidator);
+
+            var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice);
+            return Ok(vehicles);
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching vehicles");
+            return StatusCode(500, "An error occured while searching vehicles");
+        }
+    }
+
     [HttpGet("by-model")]
     public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehiclesByModel([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string model)
     {

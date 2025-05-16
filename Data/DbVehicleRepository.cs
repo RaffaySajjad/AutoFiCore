@@ -17,12 +17,17 @@ public class DbVehicleRepository : IVehicleRepository
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset)
+    public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)
     {
         try 
         {
+            var totalVehicles = await _dbContext.Vehicles.CountAsync();
             var result = await _dbContext.Vehicles.OrderBy(v=>v.Id).Skip(offset).Take(pageView).ToListAsync();
-            return result;
+            return new VehicleListResult
+            {
+                Vehicles = result,
+                TotalCount = totalVehicles
+            };
         }
         catch (Exception ex)
         {
@@ -42,16 +47,23 @@ public class DbVehicleRepository : IVehicleRepository
         return await Task.FromResult(makes);
     }
 
-    public async Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make)
+    public async Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make)
     {
         try
         {
-            var result = await _dbContext.Vehicles.OrderBy(v=>v.Id)
-                .Where(v => v.Make.ToLower() == make.ToLower())
+            var query = _dbContext.Vehicles.Where(v => v.Make.ToLower() == make.ToLower());
+            var totalVehicles = await query.CountAsync();
+
+
+            var result = await query.OrderBy(v=>v.Id)
                 .Skip(offset)
                 .Take(pageView)
                 .ToListAsync();
-            return result;
+            return new VehicleListResult
+            {
+                Vehicles = result,
+                TotalCount = totalVehicles
+            };
         }
         catch (Exception ex)
         {
@@ -60,16 +72,23 @@ public class DbVehicleRepository : IVehicleRepository
         }
     }
 
-    public async Task<IEnumerable<Vehicle>> GetVehiclesByModelAsync(int pageView, int offset, string model)
+    public async Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string model)
     {
         try
         {
-            var result = await _dbContext.Vehicles.OrderBy(v => v.Id)
-                .Where(v => v.Model.ToLower() == model.ToLower())
+            var query = _dbContext.Vehicles.Where(v => v.Model.ToLower() == model.ToLower());
+            var totalVehicles = await query.CountAsync();
+            
+            var result = await query.OrderBy(v => v.Id)
                 .Skip(offset)
                 .Take(pageView)
                 .ToListAsync();
-            return result;
+
+            return new VehicleListResult
+            {
+                Vehicles = result,
+                TotalCount = totalVehicles
+            };
         }
         catch (Exception ex)
         {
@@ -77,6 +96,59 @@ public class DbVehicleRepository : IVehicleRepository
             throw;
         }
     }
+
+    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make = null, string? model = null, decimal? startPrice = null, decimal? endPrice = null)
+    {
+        try
+        {
+            var query = _dbContext.Vehicles.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(make))
+            {
+                query = query.Where(v => v.Make == make);
+            }
+
+            if (!string.IsNullOrWhiteSpace(make) && make != "Any Makes")
+            {
+                query = query.Where(v => v.Make == make);
+            }
+
+            if (!string.IsNullOrWhiteSpace(model) && model != "Any Models")
+            {
+                query = query.Where(v => v.Model == model);
+            }
+
+            if (startPrice.HasValue)
+            {
+                query = query.Where(v => v.Price >= startPrice.Value);
+            }
+
+            if (endPrice.HasValue)
+            {
+                query = query.Where(v => v.Price <= endPrice.Value);
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var vehicles = await query
+                .OrderBy(v => v.Id)
+                .Skip(offset)
+                .Take(pageView)
+                .ToListAsync();
+
+            return new VehicleListResult
+            {
+                Vehicles = vehicles,
+                TotalCount = totalCount,
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching vehicles");
+            throw;
+        }
+    }
+
 
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {

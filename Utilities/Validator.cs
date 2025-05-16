@@ -17,5 +17,14 @@
 
             return null;
         }
+        public static bool ValidatePrice(decimal? startPrice, decimal? endPrice)
+        {
+            if (startPrice.HasValue && endPrice.HasValue)
+            {
+                return startPrice.Value <= endPrice.Value;
+            }
+
+            return true;
+        }
     }
 }

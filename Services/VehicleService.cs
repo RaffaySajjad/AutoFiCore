@@ -6,9 +6,10 @@ namespace AutoFiCore.Services;
 
 public interface IVehicleService
 {
-    Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset);
-    Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make);
-    Task<IEnumerable<Vehicle>> GetVehiclesByModelAsync(int pageView, int offset, string make);
+    Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset);
+    Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
+    Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string make);
+    Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice);
     Task<List<string>> GetAllVehiclesMakesAsync();
     Task<Vehicle?> GetVehicleByIdAsync(int id);
     Task<Vehicle?> GetVehicleByVinAsync(string vin);
@@ -27,7 +28,7 @@ public class VehicleService : IVehicleService
         _repository = repository;
         _logger = logger;
     } 
-    public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync(int pageView, int offset)
+    public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)
     {
         try
         {
@@ -53,7 +54,7 @@ public class VehicleService : IVehicleService
         }
     }
 
-    public async Task<IEnumerable<Vehicle>> GetVehiclesByMakeAsync(int pageView, int offset, string make)
+    public async Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make)
     {
         try
         {
@@ -65,7 +66,21 @@ public class VehicleService : IVehicleService
             throw;
         }
     }
-    public async Task<IEnumerable<Vehicle>> GetVehiclesByModelAsync(int pageView, int offset, string model)
+
+    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice)
+    {
+        try
+        {
+            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicles by make {Make}", make);
+            throw;
+        }
+    }
+
+    public async Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string model)
     {
         try
         {
@@ -95,8 +110,9 @@ public class VehicleService : IVehicleService
     {
         try
         {
-            var vehicles = await _repository.GetAllVehiclesAsync(10, 0);
-            return vehicles.FirstOrDefault(v => v.Vin == vin);
+
+            var result = await _repository.GetAllVehiclesAsync(25, 0);
+            return result.Vehicles.FirstOrDefault(v=>v.Vin == vin);
         }
         catch (Exception ex)
         {
@@ -123,6 +139,7 @@ public class VehicleService : IVehicleService
         try
         {
             var success = await _repository.UpdateVehicleAsync(vehicle);
+         
             if (!success)
             {
                 throw new InvalidOperationException($"Vehicle with ID {vehicle.Id} not found");
