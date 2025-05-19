@@ -38,4 +38,15 @@ public class Vehicle
 
     [StringLength(20)]
     public string? Transmission { get; set; }
-}
+
+    public Drivetrain? Drivetrain { get; set; } = null;
+    public Engine? Engine { get; set; } = null;
+
+    public FuelEconomy? FuelEconomy { get; set; } = null;
+
+    public VehiclePerformance? VehiclePerformance { get; set; } = null;
+
+    public Measurements? Measurements { get; set; } = null;
+
+    public List<VehicleOptions>? VehicleOptions { get; set; } = null;
+ }
