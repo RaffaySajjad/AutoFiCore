@@ -10,7 +10,7 @@ public interface IVehicleService
     Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset);
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string make);
-    Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice);
+    Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice, int? mileage = null, string? sortOrder = null);
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
     VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model);
     Task<List<string>> GetAllVehiclesMakesAsync();
@@ -99,11 +99,11 @@ public class VehicleService : IVehicleService
         }
     }
 
-    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice)
+    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice, int? mileage = null, string? sortOrder = null)
     {
         try
         {
-            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice);
+            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, sortOrder);
         }
         catch (Exception ex)
         {

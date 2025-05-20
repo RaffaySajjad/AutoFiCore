@@ -10,6 +10,13 @@
                 return "'offset' must be 0 or greater.";
             return null;
         }
+        public static string? ValidateMileage(int? mileage)
+        {
+
+            if (mileage.HasValue && mileage < 0)
+                return "'mileage' must be greater than 0.";
+            return null;
+        }
         public static string? ValidateMakeOrModel(string makeORmodel)
         {
             if (string.IsNullOrWhiteSpace(makeORmodel) || makeORmodel is null)

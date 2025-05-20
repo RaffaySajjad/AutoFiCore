@@ -19,7 +19,6 @@ namespace AutoFiCore.Utilities
 
             return input;
         }
-
         public static object NormalizeCarFeatures(VehicleModelJSON vehicle)
         {
             if (vehicle?.Features == null)

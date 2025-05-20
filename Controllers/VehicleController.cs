@@ -94,18 +94,22 @@ public class VehicleController : ControllerBase
         }
     }
     [HttpGet("search-vehicles")]
-    public async Task<ActionResult<IEnumerable<Vehicle>>> SearchVehicles([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string? make, [FromQuery] string? model, [FromQuery] decimal? startPrice, [FromQuery] decimal? endPrice)
+    public async Task<ActionResult<IEnumerable<Vehicle>>> SearchVehicles([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string? make, [FromQuery] string? model, [FromQuery] decimal? startPrice, [FromQuery] decimal? endPrice, [FromQuery] int? mileage, [FromQuery] string? sortOrder = null)
     {
         try
         {
             make = NormalizeInput.NormalizeMakeModel(make);
             model = NormalizeInput.NormalizeMakeModel(model);
 
+            var mileageValidator = Validator.ValidateMileage(mileage);
+            if (mileageValidator != null)
+                return BadRequest(mileageValidator);
+
             var priceValidator = Validator.ValidatePrice(startPrice, endPrice);
             if (!priceValidator) 
                 return BadRequest(priceValidator);
 
-            var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice);
+            var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, sortOrder);
             return Ok(vehicles);
 
         }

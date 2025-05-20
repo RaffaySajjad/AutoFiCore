@@ -3,6 +3,7 @@ using AutoFiCore.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace AutoFiCore.Data;
@@ -138,7 +139,7 @@ public class MockVehicleRepository : IVehicleRepository
         return await Task.FromResult( result );
     }
 
-    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make = null, string? model = null, decimal? startPrice = null, decimal? endPrice = null)
+    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make = null, string? model = null, decimal? startPrice = null, decimal? endPrice = null, int? milage = null, string? sortOrder = null)
     {
         try
         {
@@ -165,10 +166,25 @@ public class MockVehicleRepository : IVehicleRepository
                 query = query.Where(v => v.Price <= endPrice.Value);
             }
 
+            if (milage.HasValue)
+            {
+                query = query.Where(v => v.Mileage <= milage.Value);
+            }
             int totalCount = query.Count();
 
+            query = sortOrder switch
+            {
+                "price_asc" => query.OrderBy(v => v.Price),
+                "price_desc" => query.OrderByDescending(v => v.Price),
+                "mileage_asc" => query.OrderBy(v => v.Mileage),
+                "mileage_desc" => query.OrderByDescending(v => v.Mileage),
+                "name_asc" => query.OrderBy(v => v.Make).ThenBy(v => v.Model),
+                "name_desc" => query.OrderByDescending(v => v.Make).ThenByDescending(v => v.Model),
+                _ => query.OrderBy(v => v.Id)
+            };
+
+
             var vehicles = query
-                .OrderBy(v => v.Id)
                 .Skip(offset)
                 .Take(pageView)
                 .ToList();

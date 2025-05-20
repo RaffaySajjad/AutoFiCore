@@ -140,16 +140,19 @@ public class DbVehicleRepository : IVehicleRepository
         }
     }
 
-    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make = null, string? model = null, decimal? startPrice = null, decimal? endPrice = null)
+    public async Task<VehicleListResult> SearchVehiclesAsync(
+    int pageView,
+    int offset,
+    string? make = null,
+    string? model = null,
+    decimal? startPrice = null,
+    decimal? endPrice = null,
+    int? mileage = null,
+    string? sortOrder = null)
     {
         try
         {
             var query = _dbContext.Vehicles.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(make))
-            {
-                query = query.Where(v => v.Make == make);
-            }
 
             if (!string.IsNullOrWhiteSpace(make) && make != "Any Makes")
             {
@@ -171,10 +174,25 @@ public class DbVehicleRepository : IVehicleRepository
                 query = query.Where(v => v.Price <= endPrice.Value);
             }
 
+            if (mileage.HasValue)
+            {
+                query = query.Where(v => v.Mileage <= mileage.Value);
+            }
+
             int totalCount = await query.CountAsync();
 
+            query = sortOrder switch
+            {
+                "price_asc" => query.OrderBy(v => v.Price),
+                "price_desc" => query.OrderByDescending(v => v.Price),
+                "mileage_asc" => query.OrderBy(v => v.Mileage),
+                "mileage_desc" => query.OrderByDescending(v => v.Mileage),
+                "name_asc" => query.OrderBy(v => v.Make).ThenBy(v => v.Model),
+                "name_desc" => query.OrderByDescending(v => v.Make).ThenByDescending(v => v.Model),
+                _ => query.OrderBy(v => v.Id)
+            };
+
             var vehicles = await query
-                .OrderBy(v => v.Id)
                 .Skip(offset)
                 .Take(pageView)
                 .ToListAsync();
@@ -182,7 +200,7 @@ public class DbVehicleRepository : IVehicleRepository
             return new VehicleListResult
             {
                 Vehicles = vehicles,
-                TotalCount = totalCount,
+                TotalCount = totalCount
             };
         }
         catch (Exception ex)
@@ -191,7 +209,6 @@ public class DbVehicleRepository : IVehicleRepository
             throw;
         }
     }
-
 
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
