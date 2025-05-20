@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using AutoFiCore.Models;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -141,52 +141,65 @@ public class DbVehicleRepository : IVehicleRepository
     }
 
     public async Task<VehicleListResult> SearchVehiclesAsync(
-    int pageView,
-    int offset,
-    string? make = null,
-    string? model = null,
-    decimal? startPrice = null,
-    decimal? endPrice = null,
-    int? mileage = null,
-    string? sortOrder = null)
+        int pageView,
+        int offset,
+        string? make = null,
+        string? model = null,
+        decimal? startPrice = null,
+        decimal? endPrice = null,
+        int? mileage = null,
+        int? startYear = null,
+        int? endYear = null,
+        string? sortOrder = null)
     {
         try
         {
             var query = _dbContext.Vehicles.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(make) && make != "Any Makes")
-            {
                 query = query.Where(v => v.Make == make);
-            }
 
             if (!string.IsNullOrWhiteSpace(model) && model != "Any Models")
-            {
                 query = query.Where(v => v.Model == model);
-            }
 
             if (startPrice.HasValue)
-            {
                 query = query.Where(v => v.Price >= startPrice.Value);
-            }
 
             if (endPrice.HasValue)
-            {
                 query = query.Where(v => v.Price <= endPrice.Value);
-            }
 
             if (mileage.HasValue)
-            {
                 query = query.Where(v => v.Mileage <= mileage.Value);
-            }
+
+            if (startYear.HasValue)
+                query = query.Where(v => v.Year >= startYear.Value);
+
+            if (endYear.HasValue)
+                query = query.Where(v => v.Year <= endYear.Value);
 
             int totalCount = await query.CountAsync();
 
+            var gearboxCounts = await query
+                .Where(v => v.Transmission != null && v.Transmission != "")
+                .GroupBy(v => v.Transmission!)
+                .Select(g => new { Transmission = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.Transmission, g => g.Count);
+
+
+            var colorCounts = await query
+                .Where(v => !string.IsNullOrEmpty(v.Color))
+                .GroupBy(v => v.Color!)
+                .Select(g => new { Color = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.Color, g => g.Count);
+           
             query = sortOrder switch
             {
                 "price_asc" => query.OrderBy(v => v.Price),
                 "price_desc" => query.OrderByDescending(v => v.Price),
                 "mileage_asc" => query.OrderBy(v => v.Mileage),
                 "mileage_desc" => query.OrderByDescending(v => v.Mileage),
+                "year_asc" => query.OrderBy(v => v.Year),
+                "year_desc" => query.OrderByDescending(v => v.Year),
                 "name_asc" => query.OrderBy(v => v.Make).ThenBy(v => v.Model),
                 "name_desc" => query.OrderByDescending(v => v.Make).ThenByDescending(v => v.Model),
                 _ => query.OrderBy(v => v.Id)
@@ -200,7 +213,9 @@ public class DbVehicleRepository : IVehicleRepository
             return new VehicleListResult
             {
                 Vehicles = vehicles,
-                TotalCount = totalCount
+                TotalCount = totalCount,
+                GearboxCounts = gearboxCounts,
+                ColorCounts = colorCounts,
             };
         }
         catch (Exception ex)
@@ -209,7 +224,6 @@ public class DbVehicleRepository : IVehicleRepository
             throw;
         }
     }
-
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
         try

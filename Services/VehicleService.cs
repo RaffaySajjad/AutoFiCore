@@ -10,7 +10,17 @@ public interface IVehicleService
     Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset);
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string make);
-    Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice, int? mileage = null, string? sortOrder = null);
+    Task<VehicleListResult> SearchVehiclesAsync(
+        int pageView,
+        int offset,
+        string? make,
+        string? model, 
+        decimal? startPrice, 
+        decimal? endPrice, 
+        int? mileage = null,
+        int? startYear = null,
+        int? endYear = null,
+        string? sortOrder = null);
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
     VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model);
     Task<List<string>> GetAllVehiclesMakesAsync();
@@ -99,11 +109,21 @@ public class VehicleService : IVehicleService
         }
     }
 
-    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice, int? mileage = null, string? sortOrder = null)
+    public async Task<VehicleListResult> SearchVehiclesAsync(
+        int pageView, 
+        int offset,
+        string? make, 
+        string? model, 
+        decimal? startPrice, 
+        decimal? endPrice, 
+        int? mileage = null,
+        int? startYear = null,
+        int? endYear = null,
+        string? sortOrder = null)
     {
         try
         {
-            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, sortOrder);
+            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder);
         }
         catch (Exception ex)
         {
