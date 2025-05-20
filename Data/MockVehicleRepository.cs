@@ -2,6 +2,8 @@ using System.Text.Json;
 using AutoFiCore.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace AutoFiCore.Data;
 
@@ -9,15 +11,17 @@ public class MockVehicleRepository : IVehicleRepository
 {
     private readonly string _dataFilePath;
     private readonly ILogger<MockVehicleRepository> _logger;
+    private readonly IWebHostEnvironment _hostingEnvironment;
     private List<Vehicle> _vehicles = new();
 
     public MockVehicleRepository(IConfiguration configuration, IWebHostEnvironment environment, 
-        ILogger<MockVehicleRepository> logger)
+        ILogger<MockVehicleRepository> logger, IWebHostEnvironment hostingEnvironment)
     {
         _logger = logger;
         _dataFilePath = Path.Combine(environment.ContentRootPath, "Data", "MockVehicles.json");
         _logger.LogInformation($"Data file path: {_dataFilePath}");
         LoadVehiclesFromFile();
+        _hostingEnvironment = hostingEnvironment;
     }
 
     private void LoadVehiclesFromFile()
@@ -77,7 +81,45 @@ public class MockVehicleRepository : IVehicleRepository
             _logger.LogError(ex, $"Error saving vehicles to file: {ex.Message}");
         }
     }
+    public VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model)
+    {
+        if (carFeatures == null)
+            return null;
 
+        return carFeatures.FirstOrDefault(c => string.Equals(c.Make, make, StringComparison.OrdinalIgnoreCase) && string.Equals(c.Model, model, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public async Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync()
+    {
+        try
+        {
+            var rootPath = _hostingEnvironment.ContentRootPath;
+            var fullPath = Path.Combine(rootPath, "Data", "car-features.json");
+
+            if (!System.IO.File.Exists(fullPath))
+            {
+                _logger.LogWarning("Data file not found at path: {Path}", fullPath);
+                return new List<VehicleModelJSON>();
+            }
+
+            var jsonData = await System.IO.File.ReadAllTextAsync(fullPath);
+
+            if (string.IsNullOrWhiteSpace(jsonData))
+            {
+                _logger.LogWarning("Data file is empty: {Path}", fullPath);
+                return new List<VehicleModelJSON>();
+            }
+
+            var carFeatures = JsonConvert.DeserializeObject<List<VehicleModelJSON>>(jsonData);
+
+            return carFeatures ?? new List<VehicleModelJSON>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving car features");
+            throw;
+        }
+    }
     public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)
     {
         var totalVehicles = _vehicles.Count;

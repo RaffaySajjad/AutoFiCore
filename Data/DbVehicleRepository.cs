@@ -3,6 +3,7 @@ using AutoFiCore.Models;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace AutoFiCore.Data;
 
@@ -10,11 +11,53 @@ public class DbVehicleRepository : IVehicleRepository
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<DbVehicleRepository> _logger;
+    private readonly IWebHostEnvironment _hostingEnvironment;
 
-    public DbVehicleRepository(ApplicationDbContext dbContext, ILogger<DbVehicleRepository> logger)
+
+    public DbVehicleRepository(ApplicationDbContext dbContext, ILogger<DbVehicleRepository> logger, IWebHostEnvironment hostingEnvironment)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _hostingEnvironment = hostingEnvironment;
+    }
+    public VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model)
+    {
+        if (carFeatures == null)
+            return null;
+
+        return carFeatures.FirstOrDefault(c => string.Equals(c.Make, make, StringComparison.OrdinalIgnoreCase) && string.Equals(c.Model, model, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public async Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync()
+    {
+        try
+        {
+            var rootPath = _hostingEnvironment.ContentRootPath;
+            var fullPath = Path.Combine(rootPath, "Data", "car-features.json");
+
+            if (!System.IO.File.Exists(fullPath))
+            {
+                _logger.LogWarning("Data file not found at path: {Path}", fullPath);
+                return new List<VehicleModelJSON>();
+            }
+
+            var jsonData = await System.IO.File.ReadAllTextAsync(fullPath);
+
+            if (string.IsNullOrWhiteSpace(jsonData))
+            {
+                _logger.LogWarning("Data file is empty: {Path}", fullPath);
+                return new List<VehicleModelJSON>();
+            }
+
+            var carFeatures = JsonConvert.DeserializeObject<List<VehicleModelJSON>>(jsonData);
+
+            return carFeatures ?? new List<VehicleModelJSON>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving car features");
+            throw;
+        }
     }
 
     public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)

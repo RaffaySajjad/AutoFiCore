@@ -3,8 +3,11 @@ using AutoFiCore.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using AutoFiCore.Utilities;
+using System.Globalization;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace AutoFiCore.Controllers;
-
+using Newtonsoft.Json;
 [ApiController]
 [Route("[controller]")]
 
@@ -38,6 +41,34 @@ public class VehicleController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving vehicles");
         }
     }
+    [HttpGet("features")]
+    public async Task<ActionResult<VehicleModelJSON>> GetCarFeatures([FromQuery] string make, [FromQuery] string model)
+    {
+        make = make.Trim();
+        var makeValidator = Validator.ValidateMakeOrModel(make);
+        if (makeValidator != null)
+            return BadRequest(makeValidator);
+
+        model = model.Trim();
+        var modelValidator = Validator.ValidateMakeOrModel(model);
+        if (modelValidator != null)
+            return BadRequest(modelValidator);
+        
+        var carFeatures = await _vehicleService.GetAllCarFeaturesAsync();
+
+        if (carFeatures == null || carFeatures.Count == 0)
+            return NotFound("No car features found.");
+
+        var match = _vehicleService.GetCarFeature(carFeatures, make, model);
+         
+        if (match == null)
+            return NotFound($"No data found for {make} {model}.");
+
+        var normalized = NormalizeInput.NormalizeCarFeatures(match);
+
+        return Ok(normalized);
+    }
+
     [HttpGet("by-make")]
     public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehiclesByMake([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string make)
     {

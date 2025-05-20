@@ -8,8 +8,8 @@ namespace AutoFiCore.Models
         public int VehicleId { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
-        public int ZeroTo60MPH {  get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal ZeroTo60MPH {  get; set; }
         public Vehicle? Vehicle { get; set; } = null;
 
     }

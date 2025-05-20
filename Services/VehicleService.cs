@@ -1,6 +1,7 @@
 using AutoFiCore.Data;
 using AutoFiCore.Models;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace AutoFiCore.Services;
 
@@ -10,6 +11,8 @@ public interface IVehicleService
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string make);
     Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make, string? model, decimal? startPrice, decimal? endPrice);
+    Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
+    VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model);
     Task<List<string>> GetAllVehiclesMakesAsync();
     Task<Vehicle?> GetVehicleByIdAsync(int id);
     Task<Vehicle?> GetVehicleByVinAsync(string vin);
@@ -27,7 +30,36 @@ public class VehicleService : IVehicleService
     {
         _repository = repository;
         _logger = logger;
-    } 
+    }
+    public VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model)
+    {
+        try
+        {
+             if (carFeatures == null || carFeatures.Count == 0)
+                return null;
+
+            return _repository.GetCarFeature(carFeatures, make, model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving Car Feature");
+            throw;
+        }
+    }
+
+
+    public async Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync()
+    {
+        try
+        {
+            return await _repository.GetAllCarFeaturesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving Car Features");
+            throw;
+        }
+    }
     public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)
     {
         try

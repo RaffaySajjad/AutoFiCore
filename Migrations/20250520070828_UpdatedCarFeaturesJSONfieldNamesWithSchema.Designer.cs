@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AutoFiCore.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AutoFiCore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250520070828_UpdatedCarFeaturesJSONfieldNamesWithSchema")]
+    partial class UpdatedCarFeaturesJSONfieldNamesWithSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,20 +106,20 @@ namespace AutoFiCore.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("CO2Emissions")
-                        .HasColumnType("numeric");
+                    b.Property<int>("CO2Emissions")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("CityMPG")
-                        .HasColumnType("numeric");
+                    b.Property<int>("CityMPG")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("CombinedMPG")
-                        .HasColumnType("numeric");
+                    b.Property<int>("CombinedMPG")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal?>("FuelTankSize")
-                        .HasColumnType("numeric");
+                    b.Property<int?>("FuelTankSize")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("HighwayMPG")
-                        .HasColumnType("numeric");
+                    b.Property<int>("HighwayMPG")
+                        .HasColumnType("integer");
 
                     b.Property<int>("VehicleId")
                         .HasColumnType("integer");
@@ -137,23 +140,23 @@ namespace AutoFiCore.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal?>("CargoCapacityCuFt")
-                        .HasColumnType("numeric");
+                    b.Property<int?>("CargoCapacityCuFt")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("CurbWeightLBS")
-                        .HasColumnType("numeric");
+                    b.Property<int>("CargoWeightLBS")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Doors")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("GroundClearance")
-                        .HasColumnType("numeric");
+                    b.Property<int>("GroundClearance")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("HeightInches")
-                        .HasColumnType("numeric");
+                    b.Property<int>("HeightInches")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("LengthInches")
-                        .HasColumnType("numeric");
+                    b.Property<int>("LengthInches")
+                        .HasColumnType("integer");
 
                     b.Property<int>("MaximumSeating")
                         .HasColumnType("integer");
@@ -161,11 +164,11 @@ namespace AutoFiCore.Migrations
                     b.Property<int>("VehicleId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("WheelbaseInches")
-                        .HasColumnType("numeric");
+                    b.Property<int>("WheelbaseInches")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("WidthInches")
-                        .HasColumnType("numeric");
+                    b.Property<int>("WidthInches")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -256,8 +259,8 @@ namespace AutoFiCore.Migrations
                     b.Property<int>("VehicleId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("ZeroTo60MPH")
-                        .HasColumnType("numeric");
+                    b.Property<int>("ZeroTo60MPH")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

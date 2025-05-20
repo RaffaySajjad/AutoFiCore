@@ -16,31 +16,31 @@ namespace AutoFiCore.Models
         public int MaximumSeating { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
-        public int HeightInches { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal HeightInches { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
-        public int WidthInches { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal WidthInches { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
-        public int LengthInches { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal LengthInches { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
-        public int WheelbaseInches { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal WheelbaseInches { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
-        public int GroundClearance { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal GroundClearance { get; set; }
 
-        [Range(0, int.MaxValue)]
-        public int? CargoCapacityCuFt { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal? CargoCapacityCuFt { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
-        public int CargoWeightLBS { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal CurbWeightLBS { get; set; }
         public Vehicle? Vehicle { get; set; } = null;
 
     }

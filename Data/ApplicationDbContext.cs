@@ -67,8 +67,6 @@ public class ApplicationDbContext : DbContext
             entity.Property(f => f.CityMPG).IsRequired();
             entity.Property(f => f.HighwayMPG).IsRequired();
             entity.Property(f => f.CO2Emissions).IsRequired();
-            entity.Property(f => f.BetterCapacityKWH).IsRequired();
-            entity.Property(f => f.RangeMiles).IsRequired();
         });
 
         modelBuilder.Entity<VehiclePerformance>(entity =>
@@ -88,7 +86,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(v => v.WheelbaseInches).IsRequired();
             entity.Property(v => v.GroundClearance).IsRequired();
             entity.Property(v => v.CargoCapacityCuFt);
-            entity.Property(v => v.CargoWeightLBS).IsRequired();
+            entity.Property(v => v.CurbWeightLBS).IsRequired();
         });
 
         modelBuilder.Entity<VehicleOptions>(entity =>

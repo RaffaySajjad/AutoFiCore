@@ -8,6 +8,8 @@ public interface IVehicleRepository
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string model);
     Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make = null, string? model = null, decimal? startPrice = null, decimal? endPrice = null);
+    VehicleModelJSON? GetCarFeature(List<VehicleModelJSON> carFeatures, string make, string model);
+    Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
     Task<List<string>> GetAllVehicleMakes();
     Task<Vehicle?> GetVehicleByIdAsync(int id);
     Task<Vehicle> AddVehicleAsync(Vehicle vehicle);
