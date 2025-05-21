@@ -149,7 +149,8 @@ public class MockVehicleRepository : IVehicleRepository
         int? milage = null,
         int? startYear = null,
         int? endYear = null,
-        string? sortOrder = null
+        string? sortOrder = null,
+        string? gearbox = null
         )
     {
         try
@@ -189,6 +190,15 @@ public class MockVehicleRepository : IVehicleRepository
             if (endYear.HasValue)
             {
                 query = query.Where(v => v.Year <= endYear.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(gearbox))
+            {
+                var gearboxList = gearbox.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (gearboxList.Length > 0)
+                {
+                    query = query.Where(v => gearboxList.Contains(v.Transmission!));
+                }
             }
 
             int totalCount = query.Count();

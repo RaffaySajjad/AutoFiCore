@@ -14,13 +14,15 @@ public interface IVehicleService
         int pageView,
         int offset,
         string? make,
-        string? model, 
-        decimal? startPrice, 
-        decimal? endPrice, 
+        string? model,
+        decimal? startPrice,
+        decimal? endPrice,
         int? mileage = null,
         int? startYear = null,
         int? endYear = null,
-        string? sortOrder = null);
+        string? sortOrder = null,
+        string? gearbox = null
+        );
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
     VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model);
     Task<List<string>> GetAllVehiclesMakesAsync();
@@ -119,11 +121,14 @@ public class VehicleService : IVehicleService
         int? mileage = null,
         int? startYear = null,
         int? endYear = null,
-        string? sortOrder = null)
+        string? sortOrder = null,
+        string? gearbox = null
+        
+        )
     {
         try
         {
-            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder);
+            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox);
         }
         catch (Exception ex)
         {
