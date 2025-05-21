@@ -121,8 +121,15 @@ public class MockVehicleRepository : IVehicleRepository
             throw;
         }
     }
-    public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)
+    public async Task<VehicleListResult> GetAllVehiclesByStatusAsync(int pageView, int offset, string? status = null)
     {
+        IQueryable<Vehicle> query = _vehicles.AsQueryable();
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(v => v.Status == status);
+        }
+
         var totalVehicles = _vehicles.Count;
 
         var vehicles = _vehicles

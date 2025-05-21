@@ -5,6 +5,8 @@ using Polly;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Runtime.InteropServices;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace AutoFiCore.Data;
 
@@ -61,12 +63,19 @@ public class DbVehicleRepository : IVehicleRepository
         }
     }
 
-    public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)
+    public async Task<VehicleListResult> GetAllVehiclesByStatusAsync(int pageView, int offset, string? status = null)
     {
         try 
         {
-            var totalVehicles = await _dbContext.Vehicles.CountAsync();
-            var result = await _dbContext.Vehicles.OrderBy(v=>v.Id).Skip(offset).Take(pageView).ToListAsync();
+            IQueryable<Vehicle> query = _dbContext.Vehicles;
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(v => v.Status == status);
+            }
+            var totalVehicles = await query.CountAsync();
+
+            var result = await query.OrderBy(v=>v.Id).Skip(offset).Take(pageView).ToListAsync();
             return new VehicleListResult
             {
                 Vehicles = result,

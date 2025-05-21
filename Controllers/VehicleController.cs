@@ -23,7 +23,7 @@ public class VehicleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Vehicle>>> GetAllVehicles([FromQuery] int pageView, [FromQuery] int offset)
+    public async Task<ActionResult<IEnumerable<Vehicle>>> GetAllVehiclesByStatus([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string? status = null)
     {
         try
         {
@@ -32,7 +32,7 @@ public class VehicleController : ControllerBase
                 return BadRequest(validationError);
 
 
-            var vehicles = await _vehicleService.GetAllVehiclesAsync(pageView, offset);
+            var vehicles = await _vehicleService.GetAllVehiclesByStatusAsync(pageView, offset, status);
             return Ok(vehicles);
         }
         catch (Exception ex)

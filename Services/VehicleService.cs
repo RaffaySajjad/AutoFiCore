@@ -7,7 +7,7 @@ namespace AutoFiCore.Services;
 
 public interface IVehicleService
 {
-    Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset);
+    Task<VehicleListResult> GetAllVehiclesByStatusAsync(int pageView, int offset, string? status = null);
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string make);
     Task<List<string>> GetDistinctColorsAsync();
@@ -87,11 +87,11 @@ public class VehicleService : IVehicleService
             throw;
         }
     }
-    public async Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset)
+    public async Task<VehicleListResult> GetAllVehiclesByStatusAsync(int pageView, int offset, string? status = null)
     {
         try
         {
-            return await _repository.GetAllVehiclesAsync(pageView, offset);
+            return await _repository.GetAllVehiclesByStatusAsync(pageView, offset, status);
         }
         catch (Exception ex)
         {
@@ -183,7 +183,7 @@ public class VehicleService : IVehicleService
         try
         {
 
-            var result = await _repository.GetAllVehiclesAsync(25, 0);
+            var result = await _repository.GetAllVehiclesByStatusAsync(25, 0);
             return result.Vehicles.FirstOrDefault(v=>v.Vin == vin);
         }
         catch (Exception ex)

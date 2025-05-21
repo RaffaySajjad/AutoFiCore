@@ -4,7 +4,7 @@ namespace AutoFiCore.Data;
 
 public interface IVehicleRepository
 {
-    Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset);
+    Task<VehicleListResult> GetAllVehiclesByStatusAsync(int pageView, int offset, string? status = null);
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string model);
     Task<List<string>> GetDistinctColorsAsync();

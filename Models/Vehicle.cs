@@ -39,6 +39,8 @@ public class Vehicle
     [StringLength(20)]
     public string? Transmission { get; set; }
 
+    [StringLength(20)]
+    public string? Status { get; set; }
     public Drivetrain? Drivetrain { get; set; } = null;
     public Engine? Engine { get; set; } = null;
 
