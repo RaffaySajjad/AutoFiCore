@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Runtime.InteropServices;
 
 namespace AutoFiCore.Data;
 
@@ -139,7 +140,23 @@ public class DbVehicleRepository : IVehicleRepository
             throw;
         }
     }
-
+    public async Task<List<string>> GetDistinctColorsAsync()
+    {
+        try
+        {
+            return await _dbContext.Vehicles
+            .Where(v => !string.IsNullOrEmpty(v.Color))
+            .Select(v => v.Color!)
+            .Distinct()
+            .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving car colors");
+            throw;
+        }
+    }
+    
     public async Task<VehicleListResult> SearchVehiclesAsync(
         int pageView,
         int offset,
@@ -151,7 +168,8 @@ public class DbVehicleRepository : IVehicleRepository
         int? startYear = null,
         int? endYear = null,
         string? sortOrder = null,
-        string? gearbox = null
+        string? gearbox = null,
+        string? selectedColors = null
         )
     {
         try
@@ -187,7 +205,14 @@ public class DbVehicleRepository : IVehicleRepository
                     query = query.Where(v => gearboxList.Contains(v.Transmission!));
                 }
             }
-
+            if (!string.IsNullOrWhiteSpace(selectedColors))
+            {
+                var selectedColorsList = selectedColors.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (selectedColorsList.Length > 0)
+                {
+                    query = query.Where(v => selectedColorsList.Contains(v.Color!));
+                }
+            }
 
             int totalCount = await query.CountAsync();
 
@@ -197,13 +222,24 @@ public class DbVehicleRepository : IVehicleRepository
                 .Select(g => new { Transmission = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.Transmission, g => g.Count);
 
+            var selectedColorsCounts = await query
+                .Where(v => v.Color != null && v.Color != "")
+                .GroupBy(v => v.Color!)
+                .Select(c => new { Color = c.Key, Count = c.Count() })
+                .ToDictionaryAsync(c => c.Color, c => c.Count);
+
+
+            var colors = await GetDistinctColorsAsync();
 
             var colorCounts = await query
                 .Where(v => !string.IsNullOrEmpty(v.Color))
                 .GroupBy(v => v.Color!)
                 .Select(g => new { Color = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.Color, g => g.Count);
-           
+
+            var allColorCounts = colors.ToDictionary(color => color, color => colorCounts.ContainsKey(color)
+                              ? colorCounts[color] : 0);
+
             query = sortOrder switch
             {
                 "price_asc" => query.OrderBy(v => v.Price),
@@ -227,7 +263,7 @@ public class DbVehicleRepository : IVehicleRepository
                 Vehicles = vehicles,
                 TotalCount = totalCount,
                 GearboxCounts = gearboxCounts,
-                ColorCounts = colorCounts,
+                ColorCounts = allColorCounts,
             };
         }
         catch (Exception ex)

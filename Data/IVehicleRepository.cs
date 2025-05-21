@@ -7,6 +7,7 @@ public interface IVehicleRepository
     Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset);
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string model);
+    Task<List<string>> GetDistinctColorsAsync();
     Task<VehicleListResult> SearchVehiclesAsync(
         int pageView,
         int offset, 
@@ -18,7 +19,8 @@ public interface IVehicleRepository
         int? startYear = null,
         int? endYear = null,
         string? sortOrder = null,
-        string? gearbox = null
+        string? gearbox = null,
+        string? selectedColors = null
         );
     VehicleModelJSON? GetCarFeature(List<VehicleModelJSON> carFeatures, string make, string model);
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();

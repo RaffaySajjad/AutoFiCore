@@ -138,7 +138,25 @@ public class MockVehicleRepository : IVehicleRepository
         };
         return await Task.FromResult( result );
     }
+    public async Task<List<string>> GetDistinctColorsAsync()
+    {
+        try
+        {
+            var result = _vehicles
+            .Where(v => !string.IsNullOrEmpty(v.Color))
+            .Select(v => v.Color!)
+            .Distinct()
+            .ToList();
 
+            return await Task.FromResult(result);
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving car colors");
+            throw;
+        }
+    }
     public async Task<VehicleListResult> SearchVehiclesAsync(
         int pageView, 
         int offset, 
@@ -150,7 +168,8 @@ public class MockVehicleRepository : IVehicleRepository
         int? startYear = null,
         int? endYear = null,
         string? sortOrder = null,
-        string? gearbox = null
+        string? gearbox = null,
+        string? selectedColors = null
         )
     {
         try
@@ -200,6 +219,14 @@ public class MockVehicleRepository : IVehicleRepository
                     query = query.Where(v => gearboxList.Contains(v.Transmission!));
                 }
             }
+            if (!string.IsNullOrWhiteSpace(selectedColors))
+            {
+                var selectedColorsList = selectedColors.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (selectedColorsList.Length > 0)
+                {
+                    query = query.Where(v => selectedColorsList.Contains(v.Transmission!));
+                }
+            }
 
             int totalCount = query.Count();
 
@@ -210,11 +237,16 @@ public class MockVehicleRepository : IVehicleRepository
                 .ToDictionaryAsync(g => g.Transmission, g => g.Count);
 
 
+            var colors = await GetDistinctColorsAsync();
+
             var colorCounts = await query
                 .Where(v => !string.IsNullOrEmpty(v.Color))
                 .GroupBy(v => v.Color!)
                 .Select(g => new { Color = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.Color, g => g.Count);
+
+            var allColorCounts = colors.ToDictionary(color => color, color => colorCounts.ContainsKey(color)
+                              ? colorCounts[color] : 0);
 
             query = sortOrder switch
             {
@@ -239,7 +271,7 @@ public class MockVehicleRepository : IVehicleRepository
                 Vehicles = vehicles,
                 TotalCount = totalCount,
                 GearboxCounts = gearboxCounts,
-                ColorCounts = colorCounts,
+                ColorCounts = allColorCounts,
             };
         }
         catch (Exception ex)

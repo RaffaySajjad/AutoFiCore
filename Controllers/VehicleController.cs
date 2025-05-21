@@ -68,6 +68,20 @@ public class VehicleController : ControllerBase
 
         return Ok(normalized);
     }
+    [HttpGet("get-colors")]
+    public async Task<ActionResult<List<string>>> GetAllCarColors()
+    {
+        try
+        {
+            var result = await _vehicleService.GetDistinctColorsAsync();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all car colors");
+            throw;
+        }
+    }
 
     [HttpGet("by-make")]
     public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehiclesByMake([FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string make)
@@ -105,13 +119,16 @@ public class VehicleController : ControllerBase
         [FromQuery] int? startYear, 
         [FromQuery] int? endYear, 
         [FromQuery] string? sortOrder = null,
-        [FromQuery] string? gearbox = null)
+        [FromQuery] string? gearbox = null,
+        [FromQuery] string? selectedColors = null
+        )
     {
         try
         {
             make = NormalizeInput.NormalizeMakeModel(make);
             model = NormalizeInput.NormalizeMakeModel(model);
-            gearbox = NormalizeInput.NormalizeGearbox(gearbox);
+            gearbox = NormalizeInput.NormalizeGearboxColors(gearbox);
+            selectedColors = NormalizeInput.NormalizeGearboxColors(selectedColors);
 
             var mileageValidator = Validator.ValidateMileage(mileage);
             if (mileageValidator != null)
@@ -121,7 +138,7 @@ public class VehicleController : ControllerBase
             if (!priceValidator) 
                 return BadRequest(priceValidator);
 
-            var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox);
+            var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors);
             return Ok(vehicles);
 
         }
@@ -158,7 +175,7 @@ public class VehicleController : ControllerBase
     }
 
     [HttpGet("get-makes")]
-    public async Task<ActionResult<IEnumerable<Vehicle>>> GetAllMakes()
+    public async Task<ActionResult<List<string>>> GetAllMakes()
     {
         try
         {

@@ -20,15 +20,15 @@ namespace AutoFiCore.Utilities
             return input;
         }
 
-        public static string? NormalizeGearbox(string? gearbox)
+        public static string? NormalizeGearboxColors(string? input)
         {
-            if (string.IsNullOrWhiteSpace(gearbox) ||
-                string.Equals(gearbox.Trim(), "Any", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(input) ||
+                string.Equals(input.Trim(), "Any", StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
 
-            return gearbox.Trim();
+            return input.Trim();
         }
 
         public static object NormalizeCarFeatures(VehicleModelJSON vehicle)

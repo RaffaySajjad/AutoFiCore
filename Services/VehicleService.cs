@@ -10,6 +10,7 @@ public interface IVehicleService
     Task<VehicleListResult> GetAllVehiclesAsync(int pageView, int offset);
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string make);
+    Task<List<string>> GetDistinctColorsAsync();
     Task<VehicleListResult> SearchVehiclesAsync(
         int pageView,
         int offset,
@@ -21,7 +22,8 @@ public interface IVehicleService
         int? startYear = null,
         int? endYear = null,
         string? sortOrder = null,
-        string? gearbox = null
+        string? gearbox = null,
+        string? selectedColors = null
         );
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
     VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model);
@@ -65,6 +67,19 @@ public class VehicleService : IVehicleService
         try
         {
             return await _repository.GetAllCarFeaturesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving Car Features");
+            throw;
+        }
+    }
+
+    public async Task<List<string>> GetDistinctColorsAsync()
+    {
+        try
+        {
+            return await _repository.GetDistinctColorsAsync();
         }
         catch (Exception ex)
         {
@@ -122,13 +137,13 @@ public class VehicleService : IVehicleService
         int? startYear = null,
         int? endYear = null,
         string? sortOrder = null,
-        string? gearbox = null
-        
+        string? gearbox = null,
+        string? selectedColors = null
         )
     {
         try
         {
-            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox);
+            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors);
         }
         catch (Exception ex)
         {
