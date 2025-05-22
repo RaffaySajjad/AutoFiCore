@@ -86,7 +86,5 @@ namespace AutoFiCore.Utilities
                 }
             };
         }
-
-
     }
-    }
+}

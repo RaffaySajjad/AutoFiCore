@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AutoFiCore.Models;
+using AutoFiCore.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -13,6 +14,10 @@ public class MockVehicleRepository : IVehicleRepository
     private readonly string _dataFilePath;
     private readonly ILogger<MockVehicleRepository> _logger;
     private readonly IWebHostEnvironment _hostingEnvironment;
+    private DateTime _lastCacheTimeColors;
+    private readonly TimeSpan _cacheDurationColors = TimeSpan.FromMinutes(60);
+    private static List<string>? _cachedColors;
+
     private List<Vehicle> _vehicles = new();
 
     public MockVehicleRepository(IConfiguration configuration, IWebHostEnvironment environment, 
@@ -164,6 +169,17 @@ public class MockVehicleRepository : IVehicleRepository
             throw;
         }
     }
+
+    public async Task<List<string>> GetColorsAsync()
+    {
+        if (_cachedColors != null && DateTime.UtcNow - _lastCacheTimeColors < _cacheDurationColors)
+            return _cachedColors;
+
+        _cachedColors = await GetDistinctColorsAsync();
+        _lastCacheTimeColors = DateTime.UtcNow;
+        return _cachedColors;
+    }
+
     public async Task<VehicleListResult> SearchVehiclesAsync(
         int pageView, 
         int offset, 
@@ -171,7 +187,7 @@ public class MockVehicleRepository : IVehicleRepository
         string? model = null, 
         decimal? startPrice = null, 
         decimal? endPrice = null, 
-        int? milage = null,
+        int? mileage = null,
         int? startYear = null,
         int? endYear = null,
         string? sortOrder = null,
@@ -182,96 +198,22 @@ public class MockVehicleRepository : IVehicleRepository
         try
         {
             var query = _vehicles.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(make) && make != "Any Makes")
-            {
-                query = query.Where(v => v.Make == make);
-            }
-
-            if (!string.IsNullOrWhiteSpace(model) && model != "Any Models")
-            {
-                query = query.Where(v => v.Model == model);
-            }
-
-
-            if (startPrice.HasValue)
-            {
-                query = query.Where(v => v.Price >= startPrice.Value);
-            }
-
-            if (endPrice.HasValue)
-            {
-                query = query.Where(v => v.Price <= endPrice.Value);
-            }
-
-            if (milage.HasValue)
-            {
-                query = query.Where(v => v.Mileage <= milage.Value);
-            }
-
-            if (startYear.HasValue)
-            {
-                query = query.Where(v => v.Year >= startYear.Value);
-            }
-            if (endYear.HasValue)
-            {
-                query = query.Where(v => v.Year <= endYear.Value);
-            }
-
-            if (!string.IsNullOrWhiteSpace(gearbox))
-            {
-                var gearboxList = gearbox.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (gearboxList.Length > 0)
-                {
-                    query = query.Where(v => gearboxList.Contains(v.Transmission!));
-                }
-            }
-            if (!string.IsNullOrWhiteSpace(selectedColors))
-            {
-                var selectedColorsList = selectedColors.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (selectedColorsList.Length > 0)
-                {
-                    query = query.Where(v => selectedColorsList.Contains(v.Transmission!));
-                }
-            }
+            query = VehicleQuery.ApplyFilters(query, make, model, startPrice, endPrice, mileage, startYear, endYear, gearbox, selectedColors);
 
             int totalCount = query.Count();
 
-            var gearboxCounts = await query
-                .Where(v => v.Transmission != null && v.Transmission != "")
-                .GroupBy(v => v.Transmission!)
-                .Select(g => new { Transmission = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(g => g.Transmission, g => g.Count);
+            var gearboxCounts = await VehicleQuery.GetGearboxCountsAsync(query);
 
+            var colors = await GetColorsAsync();
 
-            var colors = await GetDistinctColorsAsync();
-
-            var colorCounts = await query
-                .Where(v => !string.IsNullOrEmpty(v.Color))
-                .GroupBy(v => v.Color!)
-                .Select(g => new { Color = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(g => g.Color, g => g.Count);
+            var colorCounts = await VehicleQuery.GetSelectedColorCounts(query);
 
             var allColorCounts = colors.ToDictionary(color => color, color => colorCounts.ContainsKey(color)
                               ? colorCounts[color] : 0);
 
-            query = sortOrder switch
-            {
-                "price_asc" => query.OrderBy(v => v.Price),
-                "price_desc" => query.OrderByDescending(v => v.Price),
-                "mileage_asc" => query.OrderBy(v => v.Mileage),
-                "mileage_desc" => query.OrderByDescending(v => v.Mileage),
-                "year_asc" => query.OrderBy(v => v.Year),
-                "year_desc" => query.OrderByDescending(v => v.Year),
-                "name_asc" => query.OrderBy(v => v.Make).ThenBy(v => v.Model),
-                "name_desc" => query.OrderByDescending(v => v.Make).ThenByDescending(v => v.Model),
-                _ => query.OrderBy(v => v.Id)
-            };
+            query = VehicleQuery.ApplySorting(query, sortOrder);
 
-            var vehicles = query
-                .Skip(offset)
-                .Take(pageView)
-                .ToList();
+            var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
             return new VehicleListResult
             {
