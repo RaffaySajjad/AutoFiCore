@@ -92,6 +92,9 @@ else
 // Register vehicle service
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 
+// Register contact info service
+builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
+
 // Add services to the container.
 builder.Services.AddControllers();
 

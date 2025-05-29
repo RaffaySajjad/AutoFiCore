@@ -1,4 +1,6 @@
-﻿namespace AutoFiCore.Utilities
+﻿using AutoFiCore.Models;
+
+namespace AutoFiCore.Utilities
 {
     public class Validator
     {
@@ -32,6 +34,45 @@
             }
 
             return true;
+        }
+
+        public static string? ValidateStringField(string value, string fieldName)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return $"{fieldName} is required and cannot be empty.";
+            }
+            return null;
+        }
+        public static string? ValidatePostCode(int postCode)
+        {
+            if (postCode <= 0)
+            {
+                return "PostCode must be greater than 0.";
+            }
+            return null;
+        }
+
+        public static List<string> ValidateContactInfo(ContactInfo contactInfo)
+        {
+            var errors = new List<string>();
+
+            void AddError(string? error)
+            {
+                if (!string.IsNullOrWhiteSpace(error))
+                    errors.Add(error);
+            }
+
+            AddError(ValidateStringField(contactInfo.FirstName, "FirstName"));
+            AddError(ValidateStringField(contactInfo.LastName, "LastName"));
+            AddError(ValidateStringField(contactInfo.SelectedOption, "SelectedOption"));
+            AddError(ValidateStringField(contactInfo.VehicleName, "VehicleName"));
+            AddError(ValidatePostCode(contactInfo.PostCode));
+            AddError(ValidateStringField(contactInfo.Email, "Email"));
+            AddError(ValidateStringField(contactInfo.PhoneNumber, "PhoneNumber"));
+            AddError(ValidateStringField(contactInfo.PreferredContactMethod, "PreferredContactMethod"));
+
+            return errors;
         }
     }
 }

@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<Vehicle> Vehicles { get; set; } = null!;
+    public DbSet<ContactInfo> ContactInfos { get; set; } = null!;
     public DbSet<Drivetrain> Drivetrains { get; set; } = null!;
     public DbSet<Engine> Engines { get; set; } = null!;
     public DbSet<FuelEconomy> FuelEconomies { get; set; } = null!;
@@ -37,6 +38,21 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Color).HasMaxLength(30);
             entity.Property(e => e.FuelType).HasMaxLength(20);
             entity.Property(e => e.Transmission).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<ContactInfo>(entitiy =>
+        {
+            entitiy.HasKey(c => c.Id);
+            entitiy.Property(c => c.FirstName).IsRequired().HasMaxLength(20);
+            entitiy.Property(c => c.LastName).IsRequired().HasMaxLength(20);
+            entitiy.Property(c => c.SelectedOption).IsRequired().HasMaxLength(30);
+            entitiy.Property(c => c.VehicleName).IsRequired().HasMaxLength(100);
+            entitiy.Property(c => c.PostCode).IsRequired();
+            entitiy.Property(c => c.Email).IsRequired();
+            entitiy.Property(c => c.PhoneNumber).IsRequired().HasMaxLength(20);
+            entitiy.Property(c => c.PreferredContactMethod).IsRequired().HasMaxLength(20);
+            entitiy.Property(c => c.Comment).HasMaxLength(100);
+            entitiy.Property(c => c.EmailMeNewResults).IsRequired();
         });
 
         modelBuilder.Entity<Drivetrain>(entity =>
