@@ -66,5 +66,49 @@ namespace AutoFiCore.Utilities
 
             return errors;
         }
+
+        private static bool IsValidEmail(string email)
+        {
+            var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+            return emailRegex.IsMatch(email);
+        }
+
+        private static bool IsValidName(string name)
+        {
+            var nameRegex = new System.Text.RegularExpressions.Regex(@"^[A-Za-z\s]+$");
+            return nameRegex.IsMatch(name);
+        }
+
+        private static bool IsStrongPassword(string password)
+        {
+            var passwordRegex = new System.Text.RegularExpressions.Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$");
+            return passwordRegex.IsMatch(password);
+        }
+
+        public static List<string> ValidateUserInfo(User userInfo)
+        {
+            var errors = new List<string>();
+
+            void AddError(string? error)
+            {
+                if (!string.IsNullOrWhiteSpace(error))
+                    errors.Add(error);
+            }
+
+            AddError(ValidateStringField(userInfo.Email, "Email"));
+            if (!string.IsNullOrWhiteSpace(userInfo.Email) && !IsValidEmail(userInfo.Email))
+                errors.Add("Email is not in a valid format.");
+
+            AddError(ValidateStringField(userInfo.Name, "Name"));
+            if (!string.IsNullOrWhiteSpace(userInfo.Name) && !IsValidName(userInfo.Name))
+                errors.Add("Name must only contain letters and spaces.");
+
+            AddError(ValidateStringField(userInfo.Password, "Password"));
+            if (!string.IsNullOrWhiteSpace(userInfo.Password) && !IsStrongPassword(userInfo.Password))
+                errors.Add("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.");
+
+            return errors;
+        }
+
     }
 }

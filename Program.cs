@@ -88,7 +88,11 @@ else
 {
     builder.Services.AddScoped<IVehicleRepository, DbVehicleRepository>();
     builder.Services.AddScoped<IContactInfoRepository, DbContactInfoRepository>();
+    builder.Services.AddScoped<IUserRepository, DbUserRepository>();
 }
+
+// Register user service
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Register vehicle service
 builder.Services.AddScoped<IVehicleService, VehicleService>();

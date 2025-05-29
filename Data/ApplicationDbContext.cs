@@ -13,12 +13,12 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Vehicle> Vehicles { get; set; } = null!;
     public DbSet<ContactInfo> ContactInfos { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
     public DbSet<Drivetrain> Drivetrains { get; set; } = null!;
     public DbSet<Engine> Engines { get; set; } = null!;
     public DbSet<FuelEconomy> FuelEconomies { get; set; } = null!;
     public DbSet<VehiclePerformance> VehiclePerformances { get; set; } = null!;
     public DbSet<Measurements> Measurements { get; set; }
-
     public DbSet<VehicleOptions> VehicleOptions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,19 +40,27 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Transmission).HasMaxLength(20);
         });
 
-        modelBuilder.Entity<ContactInfo>(entitiy =>
+        modelBuilder.Entity<ContactInfo>(entity =>
         {
-            entitiy.HasKey(c => c.Id);
-            entitiy.Property(c => c.FirstName).IsRequired().HasMaxLength(20);
-            entitiy.Property(c => c.LastName).IsRequired().HasMaxLength(20);
-            entitiy.Property(c => c.SelectedOption).IsRequired().HasMaxLength(30);
-            entitiy.Property(c => c.VehicleName).IsRequired().HasMaxLength(100);
-            entitiy.Property(c => c.PostCode).IsRequired();
-            entitiy.Property(c => c.Email).IsRequired();
-            entitiy.Property(c => c.PhoneNumber).IsRequired().HasMaxLength(20);
-            entitiy.Property(c => c.PreferredContactMethod).IsRequired().HasMaxLength(20);
-            entitiy.Property(c => c.Comment).HasMaxLength(100);
-            entitiy.Property(c => c.EmailMeNewResults).IsRequired();
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.FirstName).IsRequired().HasMaxLength(20);
+            entity.Property(c => c.LastName).IsRequired().HasMaxLength(20);
+            entity.Property(c => c.SelectedOption).IsRequired().HasMaxLength(30);
+            entity.Property(c => c.VehicleName).IsRequired().HasMaxLength(100);
+            entity.Property(c => c.PostCode).IsRequired();
+            entity.Property(c => c.Email).IsRequired();
+            entity.Property(c => c.PhoneNumber).IsRequired().HasMaxLength(20);
+            entity.Property(c => c.PreferredContactMethod).IsRequired().HasMaxLength(20);
+            entity.Property(c => c.Comment).HasMaxLength(100);
+            entity.Property(c => c.EmailMeNewResults).IsRequired();
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.Name).IsRequired().HasMaxLength(40);
+            entity.Property(u => u.Email).IsRequired().HasMaxLength(25);
+            entity.Property(u => u.Password).IsRequired().HasMaxLength(25);
         });
 
         modelBuilder.Entity<Drivetrain>(entity =>

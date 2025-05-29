@@ -7,7 +7,6 @@ namespace AutoFiCore.Services
     public interface IContactInfoService
     {
         Task<ContactInfo> AddContactInfoAsync(ContactInfo contactInfo);
-
     }
 
     public class ContactInfoService : IContactInfoService
@@ -20,11 +19,11 @@ namespace AutoFiCore.Services
             _logger = logger;
         }
 
-        public Task<ContactInfo> AddContactInfoAsync(ContactInfo contactInfo)
+        public async Task<ContactInfo> AddContactInfoAsync(ContactInfo contactInfo)
         {
            try
             {
-                return _repository.AddContactInfoAsync(contactInfo);
+                return await _repository.AddContactInfoAsync(contactInfo);
             }
             catch (Exception ex)
             {
