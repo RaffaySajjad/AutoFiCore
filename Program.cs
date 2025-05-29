@@ -87,6 +87,7 @@ if (apiSettings.UseMockApi)
 else
 {
     builder.Services.AddScoped<IVehicleRepository, DbVehicleRepository>();
+    builder.Services.AddScoped<IContactInfoRepository, DbContactInfoRepository>();
 }
 
 // Register vehicle service

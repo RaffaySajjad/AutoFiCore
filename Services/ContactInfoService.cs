@@ -12,18 +12,26 @@ namespace AutoFiCore.Services
 
     public class ContactInfoService : IContactInfoService
     {
-        private readonly ApplicationDbContext _dbContext;
-
-        public ContactInfoService(ApplicationDbContext dbContext)
+        private readonly IContactInfoRepository _repository;
+        private readonly ILogger<ContactInfoService> _logger;
+        public ContactInfoService(IContactInfoRepository repository, ILogger<ContactInfoService> logger)
         {
-            _dbContext = dbContext;
+            _repository = repository;
+            _logger = logger;
         }
 
-        public async Task<ContactInfo> AddContactInfoAsync(ContactInfo contactInfo)
+        public Task<ContactInfo> AddContactInfoAsync(ContactInfo contactInfo)
         {
-            _dbContext.ContactInfos.Add(contactInfo);
-            await _dbContext.SaveChangesAsync();
-            return contactInfo;
+           try
+            {
+                return _repository.AddContactInfoAsync(contactInfo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding contact info");
+                throw;
+
+            }
         }
     }
 }
