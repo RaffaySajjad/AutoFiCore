@@ -44,15 +44,7 @@ namespace AutoFiCore.Utilities
             }
             return null;
         }
-        public static string? ValidatePostCode(int postCode)
-        {
-            if (postCode <= 0)
-            {
-                return "PostCode must be greater than 0.";
-            }
-            return null;
-        }
-
+     
         public static List<string> ValidateContactInfo(ContactInfo contactInfo)
         {
             var errors = new List<string>();
@@ -67,7 +59,7 @@ namespace AutoFiCore.Utilities
             AddError(ValidateStringField(contactInfo.LastName, "LastName"));
             AddError(ValidateStringField(contactInfo.SelectedOption, "SelectedOption"));
             AddError(ValidateStringField(contactInfo.VehicleName, "VehicleName"));
-            AddError(ValidatePostCode(contactInfo.PostCode));
+            AddError(ValidateStringField(contactInfo.PostCode, "PostCode"));
             AddError(ValidateStringField(contactInfo.Email, "Email"));
             AddError(ValidateStringField(contactInfo.PhoneNumber, "PhoneNumber"));
             AddError(ValidateStringField(contactInfo.PreferredContactMethod, "PreferredContactMethod"));

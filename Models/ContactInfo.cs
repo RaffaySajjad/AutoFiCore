@@ -23,8 +23,8 @@ namespace AutoFiCore.Models
         public string VehicleName { get; set; } = string.Empty;
 
         [Required]
-        [Range(1, int.MaxValue)]
-        public int PostCode { get; set; }
+        [StringLength(50)]
+        public string PostCode { get; set; } = string.Empty;
 
         [Required]
         [StringLength(50)]
