@@ -2,6 +2,7 @@
 using AutoFiCore.Models;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace AutoFiCore.Data
 {
@@ -47,7 +48,8 @@ namespace AutoFiCore.Data
                 return new AuthResponse
                 {
                     Token = token,
-                    UserId = user.Id
+                    UserId = user.Id,
+                    UserName = user.Name
                 };
             }
             catch (Exception ex)

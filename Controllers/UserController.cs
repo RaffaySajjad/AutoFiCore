@@ -59,7 +59,5 @@ namespace AutoFiCore.Controllers
                 return StatusCode(500, new { message = "Login failed", error = ex.Message });
             }
         }
-
-
     }
 }

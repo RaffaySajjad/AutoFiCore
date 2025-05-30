@@ -7,6 +7,5 @@ namespace AutoFiCore.Data
     {
         Task<User> AddUserAsync(User user);
         Task<AuthResponse> LoginUserAsync(string email, string password, TokenProvider tokenProvider);
-
     }
 }
