@@ -2,6 +2,7 @@
 using AutoFiCore.Services;
 using Microsoft.AspNetCore.Mvc;
 using AutoFiCore.Utilities;
+using AutoFiCore.Dto;
 
 namespace AutoFiCore.Controllers
 {
@@ -39,6 +40,23 @@ namespace AutoFiCore.Controllers
                     message = "An error occurred while saving user info.",
                     error = ex.Message
                 });
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<User>> LoginUser([FromBody] LoginDTO loginDTO)
+        {
+            try
+            {
+                var user = await _userService.LoginUserAsync(loginDTO.Email, loginDTO.Password);
+                if (user == null)
+                {
+                    return Unauthorized(new { message = "Invalid credentials" });
+                }
+                return Ok(user);
+            } catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Login failed", error = ex.Message });
             }
         }
 

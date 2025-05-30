@@ -1,4 +1,6 @@
 ﻿using AutoFiCore.Models;
+using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace AutoFiCore.Data
 {
@@ -15,6 +17,7 @@ namespace AutoFiCore.Data
         {
             try
             {
+                user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
                 _dbContext.Users.Add(user);
                 await _dbContext.SaveChangesAsync();
                 return user;
@@ -26,5 +29,23 @@ namespace AutoFiCore.Data
 
             }
         }
+        public async Task<User?> LoginUserAsync(string email, string password)
+        {
+            try
+            {
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+                {
+                    return null;
+                }
+                return user;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error logging in user");
+                throw;
+            }
+        }
+
     }
 }

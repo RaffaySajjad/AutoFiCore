@@ -60,7 +60,7 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(u => u.Id);
             entity.Property(u => u.Name).IsRequired().HasMaxLength(40);
             entity.Property(u => u.Email).IsRequired().HasMaxLength(25);
-            entity.Property(u => u.Password).IsRequired().HasMaxLength(25);
+            entity.Property(u => u.Password).IsRequired().HasMaxLength(100);
         });
 
         modelBuilder.Entity<Drivetrain>(entity =>

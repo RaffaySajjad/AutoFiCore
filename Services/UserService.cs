@@ -6,6 +6,7 @@ namespace AutoFiCore.Services
     public interface IUserService
     {
         Task<User> AddUserAsync(User user);
+        Task<User?> LoginUserAsync(string email, string password);
     }
 
     public class UserService:IUserService
@@ -31,5 +32,18 @@ namespace AutoFiCore.Services
 
             }
         }
+        public async Task<User?> LoginUserAsync(string email, string password)
+        {
+            try
+            {
+                return await _repository.LoginUserAsync(email, password);
+
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error logging in user");
+                throw;
+            }
+        }
+
     }
 }

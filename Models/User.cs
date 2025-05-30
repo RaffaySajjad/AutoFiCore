@@ -15,7 +15,7 @@ namespace AutoFiCore.Models
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(25)]
+        [StringLength(100)]
         public string Password { get; set; } = string.Empty;
 
     }
