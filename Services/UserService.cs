@@ -1,4 +1,5 @@
 ﻿using AutoFiCore.Data;
+using AutoFiCore.Dto;
 using AutoFiCore.Models;
 
 namespace AutoFiCore.Services
@@ -6,17 +7,19 @@ namespace AutoFiCore.Services
     public interface IUserService
     {
         Task<User> AddUserAsync(User user);
-        Task<User?> LoginUserAsync(string email, string password);
+        Task<AuthResponse> LoginUserAsync(string email, string password);
     }
 
     public class UserService:IUserService
     {
         private readonly IUserRepository _repository;
         private readonly ILogger<UserService> _logger;
-        public UserService(IUserRepository repository, ILogger<UserService> logger)
+        private readonly TokenProvider _tokenProvider;
+        public UserService(IUserRepository repository, ILogger<UserService> logger, TokenProvider tokenProvider)
         {
             _repository = repository;
             _logger = logger;
+            _tokenProvider = tokenProvider;
         }
 
         public async Task<User> AddUserAsync(User user)
@@ -32,11 +35,11 @@ namespace AutoFiCore.Services
 
             }
         }
-        public async Task<User?> LoginUserAsync(string email, string password)
+        public async Task<AuthResponse> LoginUserAsync(string email, string password)
         {
             try
             {
-                return await _repository.LoginUserAsync(email, password);
+                return await _repository.LoginUserAsync(email, password, _tokenProvider);
 
             } catch (Exception ex)
             {

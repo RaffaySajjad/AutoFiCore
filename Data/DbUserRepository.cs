@@ -1,4 +1,5 @@
-﻿using AutoFiCore.Models;
+﻿using AutoFiCore.Dto;
+using AutoFiCore.Models;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,16 +30,25 @@ namespace AutoFiCore.Data
 
             }
         }
-        public async Task<User?> LoginUserAsync(string email, string password)
+        public async Task<AuthResponse> LoginUserAsync(string email, string password, TokenProvider tokenProvider)
         {
             try
             {
                 var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-                if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+                if (user == null)
                 {
-                    return null;
+                    throw new Exception("The user was not found");
                 }
-                return user;
+                if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
+                {
+                    throw new Exception("The password is incorrect");
+                }
+                string token = tokenProvider.Create(user);
+                return new AuthResponse
+                {
+                    Token = token,
+                    UserId = user.Id
+                };
             }
             catch (Exception ex)
             {

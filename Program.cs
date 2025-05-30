@@ -79,6 +79,8 @@ var retryPolicy = Policy
 
 builder.Services.AddSingleton<IAsyncPolicy>(retryPolicy);
 
+builder.Services.AddSingleton<TokenProvider>();
+
 // Register repository based on configuration
 if (apiSettings.UseMockApi)
 {
