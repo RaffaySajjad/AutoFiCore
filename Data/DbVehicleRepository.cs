@@ -244,6 +244,18 @@ public class DbVehicleRepository : IVehicleRepository
             throw;
         }
     }
+    public async Task<Vehicle?> GetVehicleByVinAsync(string Vin)
+    {
+        try
+        {
+            return await _dbContext.Vehicles.FirstOrDefaultAsync(v => v.Vin == Vin);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle with  {Vin}", Vin);
+            throw;
+        }
+    }
 
     public async Task<Vehicle> AddVehicleAsync(Vehicle vehicle)
     {

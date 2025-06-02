@@ -1,6 +1,7 @@
 ﻿using AutoFiCore.Dto;
 using AutoFiCore.Models;
 using BCrypt.Net;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration.UserSecrets;
 
@@ -31,19 +32,87 @@ namespace AutoFiCore.Data
 
             }
         }
-        public async Task<AuthResponse> LoginUserAsync(string email, string password, TokenProvider tokenProvider)
+        public async Task<List<string>> GetUserLikesVehicles(int id)
         {
             try
             {
+                return await _dbContext.UserLikes
+                    .Where(ul => ul.userId == id)
+                    .Select(ul => ul.vehicleVin)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching user liked vins");
+                throw;
+            }
+        }
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            try
+            {
+                return await _dbContext.Users.FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding new user");
+                throw;
+
+            }
+        }
+        public async Task<UserLikes> AddUserLikeAsync(UserLikes userlikes)
+        {
+            try
+            {
+                _dbContext.UserLikes.Add(userlikes);
+                await _dbContext.SaveChangesAsync();
+                return userlikes;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding user like");
+                throw;
+            }
+        }
+        public async Task<UserLikes?> RemoveUserLikeAsync(UserLikes userLikes)
+        {
+            try
+            {
+                var like = await _dbContext.UserLikes
+                    .FirstOrDefaultAsync(ul => ul.userId == userLikes.userId && ul.vehicleVin == userLikes.vehicleVin);
+
+                if (like == null)
+                {
+                    return null;
+                }
+
+                _dbContext.UserLikes.Remove(like);
+                await _dbContext.SaveChangesAsync();
+                return like;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing user like");
+                throw;
+            }
+        }
+
+
+        public async Task<AuthResponse?> LoginUserAsync(string email, string password, TokenProvider tokenProvider)
+        {
+            try
+            {
+
                 var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
                 if (user == null)
                 {
-                    throw new Exception("The user was not found");
+                    return null;  
                 }
                 if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
                 {
-                    throw new Exception("The password is incorrect");
+                    return null;
                 }
+
                 string token = tokenProvider.Create(user);
                 return new AuthResponse
                 {
@@ -54,10 +123,13 @@ namespace AutoFiCore.Data
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error logging in user");
+                _logger.LogError(ex, "Error removing user like");
                 throw;
             }
         }
 
     }
-}
+
+
+ }
+

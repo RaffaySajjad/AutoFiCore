@@ -26,6 +26,7 @@ public interface IVehicleRepository
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
     Task<List<string>> GetAllVehicleMakes();
     Task<Vehicle?> GetVehicleByIdAsync(int id);
+    Task<Vehicle?> GetVehicleByVinAsync(string Vin);
     Task<Vehicle> AddVehicleAsync(Vehicle vehicle);
     Task<bool> UpdateVehicleAsync(Vehicle vehicle);
     Task<bool> DeleteVehicleAsync(int id);

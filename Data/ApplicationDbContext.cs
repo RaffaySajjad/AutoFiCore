@@ -13,6 +13,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Vehicle> Vehicles { get; set; } = null!;
     public DbSet<ContactInfo> ContactInfos { get; set; } = null!;
+
+    public DbSet<UserLikes> UserLikes {  get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Drivetrain> Drivetrains { get; set; } = null!;
     public DbSet<Engine> Engines { get; set; } = null!;
@@ -61,6 +63,12 @@ public class ApplicationDbContext : DbContext
             entity.Property(u => u.Name).IsRequired().HasMaxLength(40);
             entity.Property(u => u.Email).IsRequired().HasMaxLength(25);
             entity.Property(u => u.Password).IsRequired().HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<UserLikes>(entity =>
+        {
+            entity.HasKey(ul => new { ul.userId, ul.vehicleVin });
+            entity.Property(ul => ul.vehicleVin).IsRequired().HasMaxLength(17);
         });
 
         modelBuilder.Entity<Drivetrain>(entity =>

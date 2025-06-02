@@ -182,9 +182,7 @@ public class VehicleService : IVehicleService
     {
         try
         {
-
-            var result = await _repository.GetAllVehiclesByStatusAsync(25, 0);
-            return result.Vehicles.FirstOrDefault(v=>v.Vin == vin);
+            return await _repository.GetVehicleByVinAsync(vin);
         }
         catch (Exception ex)
         {

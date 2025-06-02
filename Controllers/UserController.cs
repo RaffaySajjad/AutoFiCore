@@ -12,10 +12,12 @@ namespace AutoFiCore.Controllers
     public class UserController:ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IVehicleService _vehicleService;
 
-        public UserController (IUserService userService)
+        public UserController (IUserService userService, IVehicleService vehicleService)
         {
             _userService = userService;
+            _vehicleService = vehicleService;
         }
         [HttpPost("add")]
 
@@ -59,5 +61,79 @@ namespace AutoFiCore.Controllers
                 return StatusCode(500, new { message = "Login failed", error = ex.Message });
             }
         }
+
+        [HttpPost("add-user-like")]
+        public async Task<ActionResult<UserLikes>> AddUserLike([FromBody] UserLikes userLikes)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(userLikes.userId);
+                var vehicle = await _vehicleService.GetVehicleByVinAsync(userLikes.vehicleVin);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = $"User with ID {userLikes.userId} not found." });
+                }
+
+                if (vehicle == null)
+                {
+                    return NotFound(new { message = $"Vehicle with VIN {userLikes.vehicleVin} not found." });
+                }
+
+                var addedLike = await _userService.AddUserLikeAsync(userLikes);
+                return Ok(addedLike);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error adding user like", error = ex.Message });
+            }
+        }
+
+        [HttpDelete("remove-user-like")]
+        public async Task<ActionResult<UserLikes>> RemoveUserLike([FromBody] UserLikes userLikes)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(userLikes.userId);
+                var vehicle = await _vehicleService.GetVehicleByVinAsync(userLikes.vehicleVin);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = $"User with ID {userLikes.userId} not found." });
+                }
+
+                if (vehicle == null)
+                {
+                    return NotFound(new { message = $"Vehicle with VIN {userLikes.vehicleVin} not found." });
+                }
+
+                var removedLike = await _userService.RemoveUserLikeAsync(userLikes);
+                return Ok(removedLike);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error adding user like", error = ex.Message });
+            }
+        }
+
+        [HttpGet("get-user-liked-vins/{id}")]
+        public async Task<ActionResult<List<string>>> GetUserLikedVins(int id)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {id} not found");
+                }
+                return await _userService.GetUserLikedVinsAsync(id);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error fetching user liked vins ", error = ex.Message });
+            }
+        }
+       
+
     }
 }

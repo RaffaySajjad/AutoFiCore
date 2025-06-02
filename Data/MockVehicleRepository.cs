@@ -284,6 +284,11 @@ public class MockVehicleRepository : IVehicleRepository
         return await Task.FromResult(_vehicles.FirstOrDefault(v => v.Id == id));
     }
 
+    public async Task<Vehicle?> GetVehicleByVinAsync(string Vin)
+    {
+        return await Task.FromResult(_vehicles.FirstOrDefault(v => v.Vin == Vin));
+    }
+
     public async Task<Vehicle> AddVehicleAsync(Vehicle vehicle)
     {
         // Generate a new ID for the vehicle
