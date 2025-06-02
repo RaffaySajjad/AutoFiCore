@@ -192,13 +192,14 @@ public class MockVehicleRepository : IVehicleRepository
         int? endYear = null,
         string? sortOrder = null,
         string? gearbox = null,
-        string? selectedColors = null
+        string? selectedColors = null,
+        string? status = null
         )
     {
         try
         {
             var query = _vehicles.AsQueryable();
-            query = VehicleQuery.ApplyFilters(query, make, model, startPrice, endPrice, mileage, startYear, endYear, gearbox, selectedColors);
+            query = VehicleQuery.ApplyFilters(query, make, model, startPrice, endPrice, mileage, startYear, endYear, gearbox, selectedColors, status);
 
             int totalCount = query.Count();
 

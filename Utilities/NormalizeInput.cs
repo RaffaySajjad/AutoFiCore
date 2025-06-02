@@ -19,6 +19,17 @@ namespace AutoFiCore.Utilities
 
             return input;
         }
+        public static string? NormalizeStatus(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return null;
+            if (input.Equals("Any", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+            input = input.Trim().ToUpper();
+            return input;
+        }
 
         public static string? NormalizeGearboxColors(string? input)
         {

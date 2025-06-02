@@ -20,7 +20,8 @@ public interface IVehicleRepository
         int? endYear = null,
         string? sortOrder = null,
         string? gearbox = null,
-        string? selectedColors = null
+        string? selectedColors = null,
+        string? status = null
         );
     VehicleModelJSON? GetCarFeature(List<VehicleModelJSON> carFeatures, string make, string model);
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();

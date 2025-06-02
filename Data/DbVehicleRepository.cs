@@ -195,13 +195,14 @@ public class DbVehicleRepository : IVehicleRepository
         int? endYear = null,
         string? sortOrder = null,
         string? gearbox = null,
-        string? selectedColors = null
+        string? selectedColors = null,
+        string? status = null
         )
     {
         try
         {
             var query = _dbContext.Vehicles.AsQueryable();
-            query = VehicleQuery.ApplyFilters(query, make, model, startPrice, endPrice, mileage, startYear, endYear, gearbox, selectedColors);
+            query = VehicleQuery.ApplyFilters(query, make, model, startPrice, endPrice, mileage, startYear, endYear, gearbox, selectedColors, status);
 
             int totalCount = await query.CountAsync();
 

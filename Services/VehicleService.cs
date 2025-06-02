@@ -23,7 +23,8 @@ public interface IVehicleService
         int? endYear = null,
         string? sortOrder = null,
         string? gearbox = null,
-        string? selectedColors = null
+        string? selectedColors = null,
+        string? status = null
         );
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
     VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model);
@@ -138,12 +139,13 @@ public class VehicleService : IVehicleService
         int? endYear = null,
         string? sortOrder = null,
         string? gearbox = null,
-        string? selectedColors = null
+        string? selectedColors = null,
+        string? status = null
         )
     {
         try
         {
-            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors);
+            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors, status);
         }
         catch (Exception ex)
         {

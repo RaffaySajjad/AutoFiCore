@@ -120,7 +120,8 @@ public class VehicleController : ControllerBase
         [FromQuery] int? endYear, 
         [FromQuery] string? sortOrder = null,
         [FromQuery] string? gearbox = null,
-        [FromQuery] string? selectedColors = null
+        [FromQuery] string? selectedColors = null,
+        [FromQuery] string? status = null
         )
     {
         try
@@ -129,6 +130,7 @@ public class VehicleController : ControllerBase
             model = NormalizeInput.NormalizeMakeModel(model);
             gearbox = NormalizeInput.NormalizeGearboxColors(gearbox);
             selectedColors = NormalizeInput.NormalizeGearboxColors(selectedColors);
+            status = NormalizeInput.NormalizeStatus(status);
 
             var mileageValidator = Validator.ValidateMileage(mileage);
             if (mileageValidator != null)
@@ -138,7 +140,7 @@ public class VehicleController : ControllerBase
             if (!priceValidator) 
                 return BadRequest(priceValidator);
 
-            var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors);
+            var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors, status);
             return Ok(vehicles);
 
         }

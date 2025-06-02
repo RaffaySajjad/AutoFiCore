@@ -18,7 +18,9 @@ namespace AutoFiCore.Utilities
             int? startYear, 
             int? endYear,
             string? gearbox,
-            string? selectedColors)
+            string? selectedColors,
+            string? status
+            )
         {
             if (!string.IsNullOrWhiteSpace(make))
                 query = query.Where(v => v.Make == make);
@@ -53,6 +55,10 @@ namespace AutoFiCore.Utilities
                 query = query.Where(v => v.Color != null && list.Contains(v.Color));
             }
 
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(v=>v.Status == status);
+            }
             return query;
         }
 
