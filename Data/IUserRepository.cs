@@ -11,5 +11,8 @@ namespace AutoFiCore.Data
         Task<User?> GetUserByIdAsync(int id);
         Task<List<string>> GetUserLikesVehicles(int id);
         Task<UserLikes?> RemoveUserLikeAsync(UserLikes userLikes);
+        Task<UserSavedSearch> AddUserSearchAsync(UserSavedSearch search);
+        Task<UserSavedSearch?> RemoveUserSearchAsync(UserSavedSearch search);
+        Task<List<string>> GetUserSavedSearches(int id);
     }
 }

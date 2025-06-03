@@ -12,6 +12,9 @@ namespace AutoFiCore.Services
         Task<User?> GetUserByIdAsync(int id);
         Task<List<string>> GetUserLikedVinsAsync(int id);
         Task<UserLikes?> RemoveUserLikeAsync(UserLikes userLikes);
+        Task<UserSavedSearch> AddUserSearchAsync(UserSavedSearch search);
+        Task<UserSavedSearch?> RemoveSavedSearchAsync(UserSavedSearch savedSearch);
+        Task<List<string>> GetUserSavedSearches(int id);
     }
 
     public class UserService:IUserService
@@ -78,6 +81,19 @@ namespace AutoFiCore.Services
             }
         }
 
+        public async Task<UserSavedSearch?> RemoveSavedSearchAsync(UserSavedSearch savedSearch)
+        {
+            try
+            {
+                return await _repository.RemoveUserSearchAsync(savedSearch);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing saved search");
+                throw;
+            }
+        }
+
         public async Task<User?> GetUserByIdAsync(int id)
         {
             try
@@ -91,6 +107,19 @@ namespace AutoFiCore.Services
             }
         }
 
+        public async Task<UserSavedSearch> AddUserSearchAsync(UserSavedSearch search)
+        {
+            try
+            {
+                return await _repository.AddUserSearchAsync(search);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving user search");
+                throw;
+            }
+        }
         public async Task<List<string>> GetUserLikedVinsAsync (int id)
         {
             try
@@ -101,6 +130,19 @@ namespace AutoFiCore.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching user liked vins");
+                throw;
+            }
+        }
+        public async Task<List<string>> GetUserSavedSearches(int id)
+        {
+            try
+            {
+                return await _repository.GetUserSavedSearches(id);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching user saved searches");
                 throw;
             }
         }

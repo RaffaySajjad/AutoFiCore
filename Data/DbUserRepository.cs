@@ -56,6 +56,41 @@ namespace AutoFiCore.Data
 
             }
         }
+        public async Task<UserSavedSearch> AddUserSearchAsync(UserSavedSearch search)
+        {
+            try
+            {
+                _dbContext.UserSavedSearches.Add(search);
+                await _dbContext.SaveChangesAsync();
+                return search;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding user search");
+                throw;
+
+            }
+        }
+        public async Task<UserSavedSearch?> RemoveUserSearchAsync(UserSavedSearch search)
+        {
+            try
+            {
+                var savedSearch = await _dbContext.UserSavedSearches.FirstOrDefaultAsync(us => us.userId == search.userId && us.search == search.search);
+                if (savedSearch == null)
+                {
+                    return null;
+                }
+                _dbContext.UserSavedSearches.Remove(savedSearch);
+                await _dbContext.SaveChangesAsync();
+                return search;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing saved search");
+                throw;
+
+            }
+        }
         public async Task<List<string>> GetUserLikesVehicles(int id)
         {
             try
@@ -69,6 +104,23 @@ namespace AutoFiCore.Data
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching user liked vins");
+                throw;
+            }
+        }
+
+        public async Task<List<string>> GetUserSavedSearches(int id)
+        {
+            try
+            {
+                return await _dbContext.UserSavedSearches
+                    .AsNoTracking()
+                    .Where(us => us.userId == id)
+                    .Select(us => us.search)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching user saved searches");
                 throw;
             }
         }

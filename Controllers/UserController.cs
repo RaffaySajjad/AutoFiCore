@@ -137,7 +137,63 @@ namespace AutoFiCore.Controllers
                 return StatusCode(500, new { message = "Error fetching user liked vins ", error = ex.Message });
             }
         }
-       
+
+        [HttpGet("get-user-saved-searches/{id}")]
+        public async Task<ActionResult<List<string>>> GetUserSearches(int id)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {id} not found");
+                }
+                return await _userService.GetUserSavedSearches(id);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error fetching user saved searhces ", error = ex.Message });
+            }
+        }
+
+        [HttpDelete("delete-search")]
+        public async Task<ActionResult<UserSavedSearch>> DeleteUserSearch([FromBody] UserSavedSearch search)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(search.userId);
+                if (user == null)
+                    return NotFound($"User with ID {search.userId} not found");
+                 
+
+                var savedSearch = await _userService.RemoveSavedSearchAsync(search);
+                if (savedSearch == null)
+                    return NotFound($"Search {search.search} with User ID {search.userId} not found");
+                return Ok(savedSearch);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error saving user search ", error = ex.Message });
+            }
+        }
+
+        [HttpPost("save-search")]
+        public async Task<ActionResult<UserSavedSearch>> SaveUserSearch([FromBody] UserSavedSearch search)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(search.userId);
+                if (user == null)
+                    return NotFound($"User with ID {search.userId} not found");
+
+                var savedSearch = await _userService.AddUserSearchAsync(search);
+                return Ok(savedSearch);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error saving user search ", error = ex.Message });
+            }
+        }
 
     }
 }
