@@ -32,7 +32,11 @@ namespace AutoFiCore.Controllers
                     return BadRequest(new { errors });
                 }
 
+
                 var addedUser = await _userService.AddUserAsync(user);
+                if (addedUser == null) {
+                    return Conflict(new { message = "Email already exists. " });
+                }
                 return Ok(addedUser);
             }
             catch (Exception ex)

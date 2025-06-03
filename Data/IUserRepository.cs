@@ -5,7 +5,7 @@ namespace AutoFiCore.Data
 {
     public interface IUserRepository
     {
-        Task<User> AddUserAsync(User user);
+        Task<User?> AddUserAsync(User user);
         Task<AuthResponse?> LoginUserAsync(string email, string password, TokenProvider tokenProvider);
         Task<UserLikes> AddUserLikeAsync(UserLikes userlikes);
         Task<User?> GetUserByIdAsync(int id);

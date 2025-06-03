@@ -6,7 +6,7 @@ namespace AutoFiCore.Services
 {
     public interface IUserService
     {
-        Task<User> AddUserAsync(User user);
+        Task<User?> AddUserAsync(User user);
         Task<AuthResponse?> LoginUserAsync(string email, string password);
         Task<UserLikes> AddUserLikeAsync(UserLikes userlikes);
         Task<User?> GetUserByIdAsync(int id);
@@ -26,7 +26,7 @@ namespace AutoFiCore.Services
             _tokenProvider = tokenProvider;
         }
 
-        public async Task<User> AddUserAsync(User user)
+        public async Task<User?> AddUserAsync(User user)
         {
             try
             {
