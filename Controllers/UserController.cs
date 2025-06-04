@@ -3,6 +3,7 @@ using AutoFiCore.Services;
 using Microsoft.AspNetCore.Mvc;
 using AutoFiCore.Utilities;
 using AutoFiCore.Dto;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AutoFiCore.Controllers
 {
@@ -66,6 +67,7 @@ namespace AutoFiCore.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("add-user-like")]
         public async Task<ActionResult<UserLikes>> AddUserLike([FromBody] UserLikes userLikes)
         {
