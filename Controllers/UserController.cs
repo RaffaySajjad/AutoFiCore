@@ -95,6 +95,7 @@ namespace AutoFiCore.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("remove-user-like")]
         public async Task<ActionResult<UserLikes>> RemoveUserLike([FromBody] UserLikes userLikes)
         {
@@ -158,6 +159,7 @@ namespace AutoFiCore.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("delete-search")]
         public async Task<ActionResult<UserSavedSearch>> DeleteUserSearch([FromBody] UserSavedSearch search)
         {
@@ -179,6 +181,7 @@ namespace AutoFiCore.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("save-search")]
         public async Task<ActionResult<UserSavedSearch>> SaveUserSearch([FromBody] UserSavedSearch search)
         {

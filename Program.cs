@@ -113,9 +113,6 @@ var app = builder.Build();
 // Initialize database
 await DbInitializer.InitializeAsync(app.Services, app.Environment);
 
-// Add our execution time logging middleware
-app.UseRequestExecutionTimeLogging();
-app.UseTokenValidatorLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -127,6 +124,11 @@ if (app.Environment.IsDevelopment())
 
 // Use CORS middleware
 app.UseCors(MyAllowSpecificOrigins);
+
+// Add our execution time logging middleware
+app.UseRequestExecutionTimeLogging();
+app.UseTokenValidatorLogging();
+
 
 //app.UseHttpsRedirection();
 
