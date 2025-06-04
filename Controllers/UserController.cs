@@ -21,7 +21,6 @@ namespace AutoFiCore.Controllers
             _vehicleService = vehicleService;
         }
         [HttpPost("add")]
-
         public async Task<ActionResult<User>> AddUserInfo([FromBody] User user)
         {
             try
