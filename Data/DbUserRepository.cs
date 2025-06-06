@@ -193,7 +193,8 @@ namespace AutoFiCore.Data
                 {
                     Token = token,
                     UserId = user.Id,
-                    UserName = user.Name
+                    UserName = user.Name,
+                    UserEmail = user.Email
                 };
             }
             catch (Exception ex)
@@ -202,7 +203,6 @@ namespace AutoFiCore.Data
                 throw;
             }
         }
-
     }
 
 
