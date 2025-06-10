@@ -133,6 +133,16 @@ public class ApplicationDbContext : DbContext
             entity.Property(v => v.Options).IsRequired();
         });
 
+        // Configure indexes
+        modelBuilder.Entity<Vehicle>().HasIndex(v => v.Id).HasDatabaseName("IX_Vehicles_Id");
+        modelBuilder.Entity<Vehicle>().HasIndex(v => v.Make).HasDatabaseName("IX_Vehicles_Make");
+        modelBuilder.Entity<Vehicle>().HasIndex(v => v.Model).HasDatabaseName("IX_Vehicles_Model");
+        modelBuilder.Entity<Vehicle>().HasIndex(v => v.Price).HasDatabaseName("IX_Vehicles_Price");
+
+        modelBuilder.Entity<Vehicle>().HasIndex(v => new { v.Make, v.Id }).HasDatabaseName("IX_Vehicles_Make_Id");
+        modelBuilder.Entity<Vehicle>().HasIndex(v => new { v.Make, v.Id }).HasDatabaseName("IX_Vehicles_Model_Id");
+        modelBuilder.Entity<Vehicle>().HasIndex(v => new { v.Make, v.Id }).HasDatabaseName("IX_Vehicles_Price_Id");
+
         // Configure relationships and set up cascade delete
         modelBuilder.Entity<Vehicle>()
             .HasOne(v => v.Drivetrain)

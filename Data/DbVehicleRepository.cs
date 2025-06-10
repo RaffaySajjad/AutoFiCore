@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using AutoFiCore.Utilities;
+using System.Diagnostics;
 
 namespace AutoFiCore.Data;
 
@@ -72,7 +73,7 @@ public class DbVehicleRepository : IVehicleRepository
     {
         try 
         {
-            IQueryable<Vehicle> query = _dbContext.Vehicles;
+            IQueryable<Vehicle> query = _dbContext.Vehicles.OrderBy(v=>v.Id);
 
             if (!string.IsNullOrEmpty(status))
             {
@@ -80,10 +81,11 @@ public class DbVehicleRepository : IVehicleRepository
             }
             var totalVehicles = await query.CountAsync();
 
-            var result = await query.OrderBy(v=>v.Id).Skip(offset).Take(pageView).ToListAsync();
+            var res = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
+
             return new VehicleListResult
             {
-                Vehicles = result,
+                Vehicles = res,
                 TotalCount = totalVehicles
             };
         }
@@ -109,17 +111,15 @@ public class DbVehicleRepository : IVehicleRepository
     {
         try
         {
-            var query = _dbContext.Vehicles.Where(v => v.Make.ToLower() == make.ToLower());
+            var query = _dbContext.Vehicles.Where(v=> v.Make == make).OrderBy(v=>v.Id);
+
             var totalVehicles = await query.CountAsync();
 
+            var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
-            var result = await query.OrderBy(v=>v.Id)
-                .Skip(offset)
-                .Take(pageView)
-                .ToListAsync();
             return new VehicleListResult
             {
-                Vehicles = result,
+                Vehicles = vehicles,
                 TotalCount = totalVehicles
             };
         }
@@ -134,13 +134,10 @@ public class DbVehicleRepository : IVehicleRepository
     {
         try
         {
-            var query = _dbContext.Vehicles.Where(v => v.Model.ToLower() == model.ToLower());
+            var query = _dbContext.Vehicles.Where(v => v.Model == model).OrderBy(v => v.Id);
             var totalVehicles = await query.CountAsync();
-            
-            var result = await query.OrderBy(v => v.Id)
-                .Skip(offset)
-                .Take(pageView)
-                .ToListAsync();
+
+            var result = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
             return new VehicleListResult
             {

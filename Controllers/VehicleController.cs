@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace AutoFiCore.Controllers;
+
 using Newtonsoft.Json;
 [ApiController]
 [Route("[controller]")]
@@ -53,14 +54,14 @@ public class VehicleController : ControllerBase
         var modelValidator = Validator.ValidateMakeOrModel(model);
         if (modelValidator != null)
             return BadRequest(modelValidator);
-        
+
         var carFeatures = await _vehicleService.GetAllCarFeaturesAsync();
 
         if (carFeatures == null || carFeatures.Count == 0)
             return NotFound("No car features found.");
 
         var match = _vehicleService.GetCarFeature(carFeatures, make, model);
-         
+
         if (match == null)
             return NotFound($"No data found for {make} {model}.");
 
@@ -90,7 +91,7 @@ public class VehicleController : ControllerBase
         {
             make = make.Trim();
             var paginationValidator = Validator.ValidatePagination(pageView, offset);
-            
+
             if (paginationValidator != null)
                 return BadRequest(paginationValidator);
 
@@ -109,15 +110,15 @@ public class VehicleController : ControllerBase
     }
     [HttpGet("search-vehicles")]
     public async Task<ActionResult<IEnumerable<Vehicle>>> SearchVehicles(
-        [FromQuery] int pageView, 
-        [FromQuery] int offset, 
-        [FromQuery] string? make, 
-        [FromQuery] string? model, 
-        [FromQuery] decimal? startPrice, 
-        [FromQuery] decimal? endPrice, 
-        [FromQuery] int? mileage, 
-        [FromQuery] int? startYear, 
-        [FromQuery] int? endYear, 
+        [FromQuery] int pageView,
+        [FromQuery] int offset,
+        [FromQuery] string? make,
+        [FromQuery] string? model,
+        [FromQuery] decimal? startPrice,
+        [FromQuery] decimal? endPrice,
+        [FromQuery] int? mileage,
+        [FromQuery] int? startYear,
+        [FromQuery] int? endYear,
         [FromQuery] string? sortOrder = null,
         [FromQuery] string? gearbox = null,
         [FromQuery] string? selectedColors = null,
@@ -137,7 +138,7 @@ public class VehicleController : ControllerBase
                 return BadRequest(mileageValidator);
 
             var priceValidator = Validator.ValidatePrice(startPrice, endPrice);
-            if (!priceValidator) 
+            if (!priceValidator)
                 return BadRequest(priceValidator);
 
             var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors, status);

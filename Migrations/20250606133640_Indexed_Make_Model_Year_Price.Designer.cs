@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AutoFiCore.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AutoFiCore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250606133640_Indexed_Make_Model_Year_Price")]
+    partial class Indexed_Make_Model_Year_Price
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -341,20 +344,10 @@ namespace AutoFiCore.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id")
-                        .HasDatabaseName("IX_Vehicles_Id");
+                    b.HasIndex("Make", "Model", "Year")
+                        .HasDatabaseName("IX_Vehicle_Make_Model_Year_Include_Price`");
 
-                    b.HasIndex("Make")
-                        .HasDatabaseName("IX_Vehicles_Make");
-
-                    b.HasIndex("Model")
-                        .HasDatabaseName("IX_Vehicles_Model");
-
-                    b.HasIndex("Price")
-                        .HasDatabaseName("IX_Vehicles_Price");
-
-                    b.HasIndex("Make", "Id")
-                        .HasDatabaseName("IX_Vehicles_Price_Id");
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Make", "Model", "Year"), new[] { "Price" });
 
                     b.ToTable("Vehicles");
                 });

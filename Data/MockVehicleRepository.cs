@@ -137,11 +137,7 @@ public class MockVehicleRepository : IVehicleRepository
 
         var totalVehicles = _vehicles.Count;
 
-        var vehicles = _vehicles
-        .OrderBy(v => v.Id)
-        .Skip(offset)
-        .Take(pageView)
-        .ToList();
+        var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
         var result = new VehicleListResult
         {
@@ -180,21 +176,7 @@ public class MockVehicleRepository : IVehicleRepository
         return _cachedColors;
     }
 
-    public async Task<VehicleListResult> SearchVehiclesAsync(
-        int pageView, 
-        int offset, 
-        string? make = null, 
-        string? model = null, 
-        decimal? startPrice = null, 
-        decimal? endPrice = null, 
-        int? mileage = null,
-        int? startYear = null,
-        int? endYear = null,
-        string? sortOrder = null,
-        string? gearbox = null,
-        string? selectedColors = null,
-        string? status = null
-        )
+    public async Task<VehicleListResult> SearchVehiclesAsync(int pageView, int offset, string? make = null, string? model = null, decimal? startPrice = null, decimal? endPrice = null, int? mileage = null,int? startYear = null, int? endYear = null, string? sortOrder = null, string? gearbox = null, string? selectedColors = null, string? status = null)
     {
         try
         {
@@ -233,18 +215,15 @@ public class MockVehicleRepository : IVehicleRepository
 
     public async Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make)
     {
-       
-        var query = _vehicles.Where(v => v.Make.ToLower() == make.ToLower());
-        
-        var vehicles = query.OrderBy(v=>v.Id)
-            .Skip(offset)
-            .Take(pageView)
-            .ToList();
+        var query = _vehicles.AsQueryable();
+        query = query.Where(v => v.Make == make);
+        var totalVehicles = query.Count();
+        var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
         var result = new VehicleListResult
         {
             Vehicles = vehicles,
-            TotalCount = vehicles.Count
+            TotalCount = totalVehicles
         };
 
         return await Task.FromResult(result);
@@ -263,12 +242,10 @@ public class MockVehicleRepository : IVehicleRepository
     }
     public async Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string model)
     {
-        var query = _vehicles.Where(v => v.Model.ToLower() == model.ToLower());
+        var query = _vehicles.AsQueryable();
+        query = query.Where(v => v.Model == model);
 
-        var vehicles = query.OrderBy(v => v.Id)
-            .Skip(offset)
-            .Take(pageView)
-            .ToList();
+        var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
         var result = new VehicleListResult
         {

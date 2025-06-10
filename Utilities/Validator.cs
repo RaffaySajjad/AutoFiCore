@@ -4,12 +4,12 @@ namespace AutoFiCore.Utilities
 {
     public class Validator
     {
-        public static string? ValidatePagination(int pageView, int offset) { 
-        
+        public static string? ValidatePagination(int pageView, int offset)
+        {
             if (pageView <= 0)
                 return "'pageView' must be greater than 0.";
             if (offset < 0)
-                return "'offset' must be 0 or greater.";
+                return "'offset' cannot be negative";
             return null;
         }
         public static string? ValidateMileage(int? mileage)
@@ -44,7 +44,7 @@ namespace AutoFiCore.Utilities
             }
             return null;
         }
-     
+
         public static List<string> ValidateContactInfo(ContactInfo contactInfo)
         {
             var errors = new List<string>();
