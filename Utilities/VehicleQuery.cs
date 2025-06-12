@@ -89,9 +89,10 @@ namespace AutoFiCore.Utilities
         {
             var gearboxCounts = await query
                 .Where(v => !string.IsNullOrEmpty(v.Transmission))
-                .GroupBy(v => v.Transmission!)
+                .Select(v => v.Transmission!)
+                .GroupBy(t => t)
                 .Select(g => new { Transmission = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(g => g.Transmission, g => g.Count);
+                .ToDictionaryAsync(g => g.Transmission , g => g.Count);
 
             return gearboxCounts;
         }

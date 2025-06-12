@@ -8,6 +8,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace AutoFiCore.Controllers;
 
+using AutoFiCore.Dto;
 using Newtonsoft.Json;
 [ApiController]
 [Route("[controller]")]
@@ -90,65 +91,104 @@ public class VehicleController : ControllerBase
         try
         {
             make = make.Trim();
-            var paginationValidator = Validator.ValidatePagination(pageView, offset);
-
-            if (paginationValidator != null)
-                return BadRequest(paginationValidator);
-
             var makeValidator = Validator.ValidateMakeOrModel(make);
             if (makeValidator != null)
                 return BadRequest(makeValidator);
+
+            var paginationValidator = Validator.ValidatePagination(pageView, offset);
+            if (paginationValidator != null)
+                return BadRequest(paginationValidator);
 
             var vehicles = await _vehicleService.GetVehiclesByMakeAsync(pageView, offset, make);
             return Ok(vehicles);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving all vehicles");
-            return StatusCode(500, "An error occurred while retrieving vehicles");
+            _logger.LogError(ex, "Error retrieving all vehicle by make");
+            return StatusCode(500, "An error occurred while retrieving vehicles by make");
         }
     }
-    [HttpGet("search-vehicles")]
-    public async Task<ActionResult<IEnumerable<Vehicle>>> SearchVehicles(
-        [FromQuery] int pageView,
-        [FromQuery] int offset,
-        [FromQuery] string? make,
-        [FromQuery] string? model,
-        [FromQuery] decimal? startPrice,
-        [FromQuery] decimal? endPrice,
-        [FromQuery] int? mileage,
-        [FromQuery] int? startYear,
-        [FromQuery] int? endYear,
-        [FromQuery] string? sortOrder = null,
-        [FromQuery] string? gearbox = null,
-        [FromQuery] string? selectedColors = null,
-        [FromQuery] string? status = null
-        )
+    [HttpGet("colors-count")]
+    public async Task<ActionResult<Dictionary<string, int>>> GetColorsCount([FromQuery] VehicleFilterDto filters)
     {
         try
         {
-            make = NormalizeInput.NormalizeMakeModel(make);
-            model = NormalizeInput.NormalizeMakeModel(model);
-            gearbox = NormalizeInput.NormalizeGearboxColors(gearbox);
-            selectedColors = NormalizeInput.NormalizeGearboxColors(selectedColors);
-            status = NormalizeInput.NormalizeStatus(status);
+            var validationErrors = Validator.ValidateFilters(filters);
+            if (validationErrors.Any())
+                return BadRequest(string.Join(" ", validationErrors));
+            filters = NormalizeInput.NormalizeFilters(filters);
+          
+            var count = await _vehicleService.GetAvailableColorsCountAsync(filters);
+            return Ok(count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching colors count ");
+            return StatusCode(500, "An error occurred while fetching vehicles colors.");
+        }
+    }
 
-            var mileageValidator = Validator.ValidateMileage(mileage);
-            if (mileageValidator != null)
-                return BadRequest(mileageValidator);
+    [HttpGet("gearbox-count")]
+    public async Task<ActionResult<Dictionary<string, int>>> GetGearboxCount([FromQuery] VehicleFilterDto filters)
+    {
+        try
+        {
+            var validationErrors = Validator.ValidateFilters(filters);
+            if (validationErrors.Any())
+                return BadRequest(string.Join(" ", validationErrors));
+            filters = NormalizeInput.NormalizeFilters(filters);
 
-            var priceValidator = Validator.ValidatePrice(startPrice, endPrice);
-            if (!priceValidator)
-                return BadRequest(priceValidator);
+            var count = await _vehicleService.GetGearboxCountsAsync(filters);
+            return Ok(count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching total gearbox count ");
+            return StatusCode(500, "An error occurred while fetching gearbox count.");
+        }
+    }
+    [HttpGet("total-vehicle-count")]
+    public async Task<ActionResult<int>> GetTotalVehicleCount([FromQuery] VehicleFilterDto filters)
+    {
+        try
+        {
+            var validationErrors = Validator.ValidateFilters(filters);
+            if (validationErrors.Any())
+                return BadRequest(string.Join(" ", validationErrors));
+            filters = NormalizeInput.NormalizeFilters(filters);
 
-            var vehicles = await _vehicleService.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors, status);
+            var count = await _vehicleService.GetTotalCountAsync(filters);
+            return Ok(count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching total vehicle count ");
+            return StatusCode(500, "An error occurred while fetching vehicles count.");
+        }
+    }
+
+    [HttpGet("search-vehicles")]
+    public async Task<ActionResult<IEnumerable<Vehicle>>> SearchVehicles([FromQuery] VehicleFilterDto filters, [FromQuery] int pageView, [FromQuery] int offset, [FromQuery] string? sortOrder = null)
+    {
+        try
+        {
+            var validationErrors = Validator.ValidateFilters(filters);
+            if (validationErrors.Any())
+                return BadRequest(string.Join(" ", validationErrors));
+
+            var paginationValidator = Validator.ValidatePagination(pageView, offset);
+            if (paginationValidator != null)
+                return BadRequest(paginationValidator);
+
+            filters = NormalizeInput.NormalizeFilters(filters);
+
+            var vehicles = await _vehicleService.SearchVehiclesAsync(filters, pageView, offset, sortOrder);
             return Ok(vehicles);
-
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching vehicles");
-            return StatusCode(500, "An error occured while searching vehicles");
+            return StatusCode(500, "An error occurred while searching vehicles.");
         }
     }
 
@@ -172,8 +212,8 @@ public class VehicleController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving all vehicles");
-            return StatusCode(500, "An error occurred while retrieving vehicles");
+            _logger.LogError(ex, "Error retrieving vehicle by model");
+            return StatusCode(500, "An error occurred while retrieving vehicle by model");
         }
     }
 

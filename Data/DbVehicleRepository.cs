@@ -9,6 +9,8 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using AutoFiCore.Utilities;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore.Internal;
+using AutoFiCore.Dto;
 
 namespace AutoFiCore.Data;
 
@@ -20,9 +22,6 @@ public class DbVehicleRepository : IVehicleRepository
     private DateTime _lastCacheTimeColors;
     private readonly TimeSpan _cacheDurationColors = TimeSpan.FromMinutes(60);
     private static List<string>? _cachedColors;
-
-
-
     public DbVehicleRepository(ApplicationDbContext dbContext, ILogger<DbVehicleRepository> logger, IWebHostEnvironment hostingEnvironment)
     {
         _dbContext = dbContext;
@@ -71,9 +70,9 @@ public class DbVehicleRepository : IVehicleRepository
 
     public async Task<VehicleListResult> GetAllVehiclesByStatusAsync(int pageView, int offset, string? status = null)
     {
-        try 
+        try
         {
-            IQueryable<Vehicle> query = _dbContext.Vehicles.OrderBy(v=>v.Id);
+            IQueryable<Vehicle> query = _dbContext.Vehicles.OrderBy(v => v.Id);
 
             if (!string.IsNullOrEmpty(status))
             {
@@ -111,7 +110,7 @@ public class DbVehicleRepository : IVehicleRepository
     {
         try
         {
-            var query = _dbContext.Vehicles.Where(v=> v.Make == make).OrderBy(v=>v.Id);
+            var query = _dbContext.Vehicles.AsNoTracking().Where(v => v.Make == make).OrderBy(v => v.Id);
 
             var totalVehicles = await query.CountAsync();
 
@@ -180,49 +179,16 @@ public class DbVehicleRepository : IVehicleRepository
     }
 
 
-    public async Task<VehicleListResult> SearchVehiclesAsync(
-        int pageView,
-        int offset,
-        string? make = null,
-        string? model = null,
-        decimal? startPrice = null,
-        decimal? endPrice = null,
-        int? mileage = null,
-        int? startYear = null,
-        int? endYear = null,
-        string? sortOrder = null,
-        string? gearbox = null,
-        string? selectedColors = null,
-        string? status = null
-        )
+    public async Task<List<Vehicle>> SearchVehiclesAsync(VehicleFilterDto filters, int pageView, int offset, string? sortOrder=null)
     {
         try
         {
-            var query = _dbContext.Vehicles.AsQueryable();
-            query = VehicleQuery.ApplyFilters(query, make, model, startPrice, endPrice, mileage, startYear, endYear, gearbox, selectedColors, status);
-
-            int totalCount = await query.CountAsync();
-
-            var gearboxCounts = await VehicleQuery.GetGearboxCountsAsync(query);
-
-            var colors = await GetColorsAsync();
-
-            var colorCounts = await VehicleQuery.GetSelectedColorCounts(query);
-
-            var allColorCounts = colors.ToDictionary(color => color, color => colorCounts.ContainsKey(color)
-                              ? colorCounts[color] : 0);
-
-            query = VehicleQuery.ApplySorting(query, sortOrder);
-
+            var query = _dbContext.Vehicles.AsNoTracking();
+            var filteredQuery = VehicleQuery.ApplyFilters(query, filters.Make, filters.Model, filters.StartPrice, filters.EndPrice, filters.Mileage, filters.StartYear, filters.EndYear, filters.Gearbox, filters.SelectedColors, filters.Status);
+            query = VehicleQuery.ApplySorting(filteredQuery, sortOrder);
             var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
-            return new VehicleListResult
-            {
-                Vehicles = vehicles,
-                TotalCount = totalCount,
-                GearboxCounts = gearboxCounts,
-                ColorCounts = allColorCounts,
-            };
+            return vehicles;
         }
         catch (Exception ex)
         {
@@ -230,6 +196,26 @@ public class DbVehicleRepository : IVehicleRepository
             throw;
         }
     }
+    public async Task<int> GetTotalCountAsync(VehicleFilterDto filterDto)
+    {
+        var query = _dbContext.Vehicles.AsNoTracking();
+        var filteredQuery = VehicleQuery.ApplyFilters(query, filterDto.Make, filterDto.Model, filterDto.StartPrice, filterDto.EndPrice, filterDto.Mileage, filterDto.StartYear, filterDto.EndYear, filterDto.Gearbox, filterDto.SelectedColors, filterDto.Status);
+        return await filteredQuery.CountAsync();
+    }
+    public async Task<Dictionary<string, int>> GetGearboxCountsAsync(VehicleFilterDto filterDto)
+    {
+        var query = _dbContext.Vehicles.AsNoTracking();
+        var filteredQuery = VehicleQuery.ApplyFilters(query, filterDto.Make, filterDto.Model, filterDto.StartPrice, filterDto.EndPrice, filterDto.Mileage, filterDto.StartYear, filterDto.EndYear, filterDto.Gearbox, filterDto.SelectedColors, filterDto.Status);
+        return await VehicleQuery.GetGearboxCountsAsync(filteredQuery);
+    }
+    public async Task<Dictionary<string, int>> GetColorsCountsAsync(VehicleFilterDto filterDto)
+    {
+        var query = _dbContext.Vehicles.AsNoTracking();
+        var filteredQuery = VehicleQuery.ApplyFilters(query, filterDto.Make, filterDto.Model, filterDto.StartPrice, filterDto.EndPrice, filterDto.Mileage, filterDto.StartYear, filterDto.EndYear, filterDto.Gearbox, filterDto.SelectedColors, filterDto.Status);
+        return await VehicleQuery.GetSelectedColorCounts(filteredQuery);
+    }
+
+
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
         try
@@ -282,7 +268,7 @@ public class DbVehicleRepository : IVehicleRepository
         {
             if (!VehicleExists(vehicle.Id))
                 return false;
-            
+
             throw;
         }
     }
@@ -310,4 +296,4 @@ public class DbVehicleRepository : IVehicleRepository
     {
         return _dbContext.Vehicles.Any(v => v.Id == id);
     }
-} 
+}

@@ -1,4 +1,5 @@
 using AutoFiCore.Data;
+using AutoFiCore.Dto;
 using AutoFiCore.Models;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -11,21 +12,10 @@ public interface IVehicleService
     Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make);
     Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string make);
     Task<List<string>> GetDistinctColorsAsync();
-    Task<VehicleListResult> SearchVehiclesAsync(
-        int pageView,
-        int offset,
-        string? make,
-        string? model,
-        decimal? startPrice,
-        decimal? endPrice,
-        int? mileage = null,
-        int? startYear = null,
-        int? endYear = null,
-        string? sortOrder = null,
-        string? gearbox = null,
-        string? selectedColors = null,
-        string? status = null
-        );
+    Task<List<Vehicle>> SearchVehiclesAsync(VehicleFilterDto filters, int pageView, int offset, string? sortOrder = null);
+    Task<int> GetTotalCountAsync(VehicleFilterDto filterDto);
+    Task<Dictionary<string, int>> GetAvailableColorsCountAsync(VehicleFilterDto filterDto);
+    Task<Dictionary<string, int>> GetGearboxCountsAsync(VehicleFilterDto filterDto);
     Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync();
     VehicleModelJSON? GetCarFeature(List<VehicleModelJSON>? carFeatures, string make, string model);
     Task<List<string>> GetAllVehiclesMakesAsync();
@@ -127,29 +117,52 @@ public class VehicleService : IVehicleService
         }
     }
 
-    public async Task<VehicleListResult> SearchVehiclesAsync(
-        int pageView, 
-        int offset,
-        string? make, 
-        string? model, 
-        decimal? startPrice, 
-        decimal? endPrice, 
-        int? mileage = null,
-        int? startYear = null,
-        int? endYear = null,
-        string? sortOrder = null,
-        string? gearbox = null,
-        string? selectedColors = null,
-        string? status = null
-        )
+    public async Task<List<Vehicle>> SearchVehiclesAsync(VehicleFilterDto filters, int pageView, int offset, string? sortOrder = null)
     {
         try
         {
-            return await _repository.SearchVehiclesAsync(pageView, offset, make, model, startPrice, endPrice, mileage, startYear, endYear, sortOrder, gearbox, selectedColors, status);
+            return await _repository.SearchVehiclesAsync(filters, pageView, offset, sortOrder);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving vehicles by make {Make}", make);
+            _logger.LogError(ex, "Error searching vehicles");
+            throw;
+        }
+    }
+    public async Task<int> GetTotalCountAsync(VehicleFilterDto filterDto)
+    {
+        try
+        {
+            return await _repository.GetTotalCountAsync(filterDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching vehicles count");
+            throw;
+        }
+    }
+    public async Task<Dictionary<string, int>> GetGearboxCountsAsync(VehicleFilterDto filterDto)
+    { 
+        try
+        {
+            return await _repository.GetGearboxCountsAsync(filterDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching vehicles gearboxes");
+            throw;
+        }
+    }
+
+    public async Task<Dictionary<string, int>> GetAvailableColorsCountAsync(VehicleFilterDto filterDto)
+    {
+        try
+        {
+            return await _repository.GetColorsCountsAsync(filterDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching vehicles colors");
             throw;
         }
     }

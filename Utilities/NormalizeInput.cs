@@ -1,4 +1,5 @@
-﻿using AutoFiCore.Models;
+﻿using AutoFiCore.Dto;
+using AutoFiCore.Models;
 
 namespace AutoFiCore.Utilities
 {
@@ -41,7 +42,6 @@ namespace AutoFiCore.Utilities
 
             return input.Trim();
         }
-
         public static object NormalizeCarFeatures(VehicleModelJSON vehicle)
         {
             if (vehicle?.Features == null)
@@ -96,6 +96,16 @@ namespace AutoFiCore.Utilities
                     options = vehicle.Features.Options
                 }
             };
+        }
+        public static VehicleFilterDto NormalizeFilters(VehicleFilterDto filters)
+        {
+            filters.Make = NormalizeMakeModel(filters.Make);
+            filters.Model = NormalizeMakeModel(filters.Model);
+            filters.Gearbox = NormalizeGearboxColors(filters.Gearbox);
+            filters.SelectedColors = NormalizeGearboxColors(filters.SelectedColors);
+            filters.Status = NormalizeStatus(filters.Status);
+
+            return filters;
         }
     }
 }

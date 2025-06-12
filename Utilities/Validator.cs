@@ -1,4 +1,5 @@
-﻿using AutoFiCore.Models;
+﻿using AutoFiCore.Dto;
+using AutoFiCore.Models;
 
 namespace AutoFiCore.Utilities
 {
@@ -35,7 +36,6 @@ namespace AutoFiCore.Utilities
 
             return true;
         }
-
         public static string? ValidateStringField(string value, string fieldName)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -44,7 +44,6 @@ namespace AutoFiCore.Utilities
             }
             return null;
         }
-
         public static List<string> ValidateContactInfo(ContactInfo contactInfo)
         {
             var errors = new List<string>();
@@ -66,25 +65,21 @@ namespace AutoFiCore.Utilities
 
             return errors;
         }
-
         private static bool IsValidEmail(string email)
         {
             var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
             return emailRegex.IsMatch(email);
         }
-
         private static bool IsValidName(string name)
         {
             var nameRegex = new System.Text.RegularExpressions.Regex(@"^[A-Za-z\s]+$");
             return nameRegex.IsMatch(name);
         }
-
         private static bool IsStrongPassword(string password)
         {
             var passwordRegex = new System.Text.RegularExpressions.Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$");
             return passwordRegex.IsMatch(password);
         }
-
         public static List<string> ValidateUserInfo(User userInfo)
         {
             var errors = new List<string>();
@@ -109,6 +104,29 @@ namespace AutoFiCore.Utilities
 
             return errors;
         }
+        public static List<string> ValidateFilters(VehicleFilterDto filters)
+        {
+            var errors = new List<string>();
+            var mileageError = ValidateMileage(filters.Mileage);
+            if (!string.IsNullOrWhiteSpace(mileageError))
+                errors.Add(mileageError);
 
+            if (filters.StartPrice.HasValue && filters.EndPrice.HasValue)
+            {
+                if (!ValidatePrice(filters.StartPrice, filters.EndPrice))
+                {
+                    errors.Add("'StartPrice' must be less than or equal to 'EndPrice'.");
+                }
+            }
+
+            if (filters.StartYear.HasValue && filters.EndYear.HasValue)
+            {
+                if (filters.StartYear > filters.EndYear)
+                {
+                    errors.Add("'StartYear' must be less than or equal to 'EndYear'.");
+                }
+            }
+            return errors;
+        }
     }
 }
