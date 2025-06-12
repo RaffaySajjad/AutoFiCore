@@ -46,7 +46,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(c => c.Id);
             entity.Property(c => c.FirstName).IsRequired().HasMaxLength(20);
-            entity.Property(c => c.LastName).IsRequired().HasMaxLength(20);
+            entity.Property(c => c.LastName).HasMaxLength(20);
             entity.Property(c => c.SelectedOption).IsRequired().HasMaxLength(30);
             entity.Property(c => c.VehicleName).IsRequired().HasMaxLength(100);
             entity.Property(c => c.PostCode).IsRequired();

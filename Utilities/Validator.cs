@@ -55,7 +55,6 @@ namespace AutoFiCore.Utilities
             }
 
             AddError(ValidateStringField(contactInfo.FirstName, "FirstName"));
-            AddError(ValidateStringField(contactInfo.LastName, "LastName"));
             AddError(ValidateStringField(contactInfo.SelectedOption, "SelectedOption"));
             AddError(ValidateStringField(contactInfo.VehicleName, "VehicleName"));
             AddError(ValidateStringField(contactInfo.PostCode, "PostCode"));

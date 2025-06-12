@@ -183,7 +183,10 @@ public class MockVehicleRepository : IVehicleRepository
         {
             var query = _vehicles.AsQueryable();
             query = VehicleQuery.ApplyFilters(query, filters.Make, filters.Model, filters.StartPrice, filters.EndPrice, filters.Mileage, filters.StartYear, filters.EndYear, filters.Gearbox, filters.SelectedColors, filters.Status);
+
+
             query = VehicleQuery.ApplySorting(query, sortOrder);
+
             var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
             return vehicles;
         }
