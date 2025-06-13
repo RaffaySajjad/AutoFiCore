@@ -10,6 +10,7 @@ namespace AutoFiCore.Models
         [StringLength(20)]
         public string FirstName { get; set; } = string.Empty;
 
+        [Required]
         [StringLength(20)]
         public string LastName { get; set; } = string.Empty;
 
