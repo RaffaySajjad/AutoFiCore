@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using AutoFiCore.Data;
 using AutoFiCore.Models;
+using AutoFiCore.Services;
 
 namespace AutoFiCore.Controllers;
 
@@ -8,61 +9,32 @@ namespace AutoFiCore.Controllers;
 [Route("[controller]")]
 public class LoanCalculationController : ControllerBase
 {
-    private readonly IVehicleRepository _vehicleRepository;
+    private readonly ILoanService _loanService;
     private readonly ILogger<LoanCalculationController> _logger;
 
-    public LoanCalculationController(IVehicleRepository vehicleRepository, ILogger<LoanCalculationController> logger)
+    public LoanCalculationController(ILoanService loanService, ILogger<LoanCalculationController> logger)
     {
-        _vehicleRepository = vehicleRepository;
+        _loanService = loanService;
         _logger = logger;
     }
 
-    [HttpPost(Name = "CalculateLoan")]
-    public async Task<ActionResult<LoanCalculation>> Calculate(LoanRequest request)
+    [HttpPost("CalculateLoan")]
+    public async Task<ActionResult<LoanCalculation>> Calculate([FromBody] LoanRequest request)
     {
-        if (request.LoanAmount <= 0 || request.InterestRate <= 0 || request.LoanTermMonths <= 0)
+        try
         {
-            return BadRequest("Loan amount, interest rate, and loan term must be greater than zero");
+            var result = await _loanService.CalculateLoanAsync(request);
+            return Ok(result);
         }
-
-        // Verify vehicle exists
-        var vehicle = await _vehicleRepository.GetVehicleByIdAsync(request.VehicleId);
-        if (vehicle == null)
+        catch (ArgumentException ex)
         {
-            return NotFound($"Vehicle with ID {request.VehicleId} not found");
+            _logger.LogWarning(ex, "Validation error in loan calculation");
+            return BadRequest(ex.Message);
         }
-
-        // Monthly interest rate
-        decimal monthlyRate = request.InterestRate / 100 / 12;
-        
-        // Calculate monthly payment using the loan formula
-        decimal monthlyPayment = request.LoanAmount * 
-            (monthlyRate * (decimal)Math.Pow((double)(1 + monthlyRate), request.LoanTermMonths)) /
-            ((decimal)Math.Pow((double)(1 + monthlyRate), request.LoanTermMonths) - 1);
-        
-        decimal totalCost = monthlyPayment * request.LoanTermMonths;
-        decimal totalInterest = totalCost - request.LoanAmount;
-
-        var calculation = new LoanCalculation
+        catch (Exception ex)
         {
-            Id = new Random().Next(1, 1000), // Just for demo purposes
-            VehicleId = request.VehicleId,
-            LoanAmount = request.LoanAmount,
-            InterestRate = request.InterestRate,
-            LoanTermMonths = request.LoanTermMonths,
-            MonthlyPayment = Math.Round(monthlyPayment, 2),
-            TotalInterest = Math.Round(totalInterest, 2),
-            TotalCost = Math.Round(totalCost, 2)
-        };
-
-        return calculation;
+            _logger.LogError(ex, "Unexpected error calculating loan");
+            return StatusCode(500, "Internal server error");
+        }
     }
-
-    public class LoanRequest
-    {
-        public int VehicleId { get; set; }
-        public decimal LoanAmount { get; set; }
-        public decimal InterestRate { get; set; }
-        public int LoanTermMonths { get; set; }
-    }
-} 
+}

@@ -1,7 +1,9 @@
 using AutoFiCore.Data;
 using AutoFiCore.Dto;
 using AutoFiCore.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using System.Threading.Tasks;
 
 namespace AutoFiCore.Services;
@@ -24,6 +26,7 @@ public interface IVehicleService
     Task<Vehicle> CreateVehicleAsync(Vehicle vehicle);
     Task<Vehicle> UpdateVehicleAsync(Vehicle vehicle);
     Task<bool> DeleteVehicleAsync(int id);
+    Task<Questionnaire> SaveQuestionnaireAsync(QuestionnaireDTO dto);
 }
 
 public class VehicleService : IVehicleService
@@ -129,6 +132,20 @@ public class VehicleService : IVehicleService
             throw;
         }
     }
+
+    public async Task<Questionnaire> SaveQuestionnaireAsync(QuestionnaireDTO dto)
+    {
+        try
+        {
+            return await _repository.SaveQuestionnaireAsync(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving questionnaire");
+            throw;
+        }
+    }
+
     public async Task<int> GetTotalCountAsync(VehicleFilterDto filterDto)
     {
         try

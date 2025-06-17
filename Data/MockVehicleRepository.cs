@@ -20,6 +20,7 @@ public class MockVehicleRepository : IVehicleRepository
     private static List<string>? _cachedColors;
 
     private List<Vehicle> _vehicles = new();
+    private List<Questionnaire> _questionnaires = new();
 
     public MockVehicleRepository(IConfiguration configuration, IWebHostEnvironment environment, 
         ILogger<MockVehicleRepository> logger, IWebHostEnvironment hostingEnvironment)
@@ -259,6 +260,35 @@ public class MockVehicleRepository : IVehicleRepository
         var filteredQuery = VehicleQuery.ApplyFilters(query, filterDto.Make, filterDto.Model, filterDto.StartPrice, filterDto.EndPrice, filterDto.Mileage, filterDto.StartYear, filterDto.EndYear, filterDto.Gearbox, filterDto.SelectedColors, filterDto.Status);
         return await VehicleQuery.GetSelectedColorCounts(filteredQuery);
     }
+
+    public async Task<Questionnaire> SaveQuestionnaireAsync(QuestionnaireDTO dto)
+    {
+        try
+        {
+            var questionnaire = new Questionnaire
+            {
+                DrivingLicense = dto.DrivingLicense,
+                MaritalStatus = dto.MaritalStatus,
+                DOB = dto.DOB,
+                EmploymentStatus = dto.EmploymentStatus,
+                BorrowAmount = dto.BorrowAmount,
+                NotSure = dto.NotSure,
+                Email = dto.Email,
+                Phone = dto.Phone
+            };
+
+            _questionnaires.Add(questionnaire);
+            await SaveQuestionnaireAsync(dto);
+
+            return questionnaire;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving questionnaire");
+            throw;
+        }
+    }
+
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
         return await Task.FromResult(_vehicles.FirstOrDefault(v => v.Id == id));

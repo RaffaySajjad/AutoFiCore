@@ -8,8 +8,11 @@ using Polly.Retry;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Configure logging
 builder.Logging.ClearProviders();
@@ -97,6 +100,15 @@ else
 
 // Register user service
 builder.Services.AddScoped<IUserService, UserService>();
+
+// Register loan service
+builder.Services.AddScoped<ILoanService, LoanService>();
+
+// Register email service
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Register PDF service
+builder.Services.AddScoped<IPdfService, PdfService>();
 
 // Register vehicle service
 builder.Services.AddScoped<IVehicleService, VehicleService>();

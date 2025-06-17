@@ -1,3 +1,4 @@
+using AutoFiCore.Dto;
 using AutoFiCore.Models;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -20,6 +21,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Engine> Engines { get; set; } = null!;
     public DbSet<FuelEconomy> FuelEconomies { get; set; } = null!;
     public DbSet<VehiclePerformance> VehiclePerformances { get; set; } = null!;
+    public DbSet<Questionnaire> Questionnaires { get; set; } = null!;
     public DbSet<Measurements> Measurements { get; set; }
     public DbSet<VehicleOptions> VehicleOptions { get; set; }
 
@@ -55,6 +57,10 @@ public class ApplicationDbContext : DbContext
             entity.Property(c => c.PreferredContactMethod).IsRequired().HasMaxLength(20);
             entity.Property(c => c.Comment).HasMaxLength(100);
             entity.Property(c => c.EmailMeNewResults).IsRequired();
+        });
+        modelBuilder.Entity<Questionnaire>(entity =>
+        {
+            entity.HasKey(q => q.Id);
         });
 
         modelBuilder.Entity<User>(entity =>

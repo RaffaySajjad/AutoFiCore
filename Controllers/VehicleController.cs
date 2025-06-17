@@ -16,12 +16,18 @@ using Newtonsoft.Json;
 public class VehicleController : ControllerBase
 {
     private readonly IVehicleService _vehicleService;
+    private readonly ILoanService _loanService;
+    private readonly IEmailService _emailService;
+    private readonly IPdfService _pdfService;
     private readonly ILogger<VehicleController> _logger;
 
-    public VehicleController(IVehicleService vehicleService, ILogger<VehicleController> logger)
+    public VehicleController(IVehicleService vehicleService, ILogger<VehicleController> logger, ILoanService loanService, IEmailService emailService, IPdfService pdfService)
     {
         _vehicleService = vehicleService;
         _logger = logger;
+        _loanService = loanService;
+        _emailService = emailService;
+        _pdfService = pdfService;
     }
 
     [HttpGet]
@@ -269,6 +275,40 @@ public class VehicleController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving the vehicle");
         }
     }
+
+    [HttpPost("save-questionnaire")]
+    public async Task<ActionResult<object>> SaveQuestionnaire([FromBody] QuestionnaireDTO dto, [FromQuery] int vehicleId)
+    {
+        try
+        {
+            var questionnaire = await _vehicleService.SaveQuestionnaireAsync(dto);
+
+            var loanRequest = new LoanRequest
+            {
+                VehicleId = vehicleId,
+                LoanAmount = dto.BorrowAmount,
+                InterestRate = 7.5m,
+                LoanTermMonths = 60
+            };
+
+            var loanDetails = await _loanService.CalculateLoanAsync(loanRequest);
+
+            var pdfBytes = _pdfService.GenerateLoanPdf(questionnaire, loanDetails);
+            await _emailService.SendLoanEmailAsync(questionnaire.Email, pdfBytes);
+
+            return Ok(new
+            {
+                Questionnaire = questionnaire,
+                Loan = loanDetails
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving questionnaire and calculating loan");
+            return StatusCode(500, "An error occurred while processing your request");
+        }
+    }
+
 
     [HttpPost]
     public async Task<ActionResult<Vehicle>> CreateVehicle(Vehicle vehicle)

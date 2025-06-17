@@ -166,8 +166,6 @@ public class DbVehicleRepository : IVehicleRepository
             throw;
         }
     }
-
-
     public async Task<List<string>> GetColorsAsync()
     {
         if (_cachedColors != null && DateTime.UtcNow - _lastCacheTimeColors < _cacheDurationColors)
@@ -177,8 +175,6 @@ public class DbVehicleRepository : IVehicleRepository
         _lastCacheTimeColors = DateTime.UtcNow;
         return _cachedColors;
     }
-
-
     public async Task<List<Vehicle>> SearchVehiclesAsync(VehicleFilterDto filters, int pageView, int offset, string? sortOrder=null)
     {
         try
@@ -215,7 +211,6 @@ public class DbVehicleRepository : IVehicleRepository
         return await VehicleQuery.GetSelectedColorCounts(filteredQuery);
     }
 
-
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
         try
@@ -240,7 +235,33 @@ public class DbVehicleRepository : IVehicleRepository
             throw;
         }
     }
+    public async Task<Questionnaire> SaveQuestionnaireAsync(QuestionnaireDTO dto)
+    {
+        try
+        {
+            var questionnaire = new Questionnaire
+            {
+                DrivingLicense = dto.DrivingLicense,
+                MaritalStatus = dto.MaritalStatus,
+                DOB = dto.DOB,
+                EmploymentStatus = dto.EmploymentStatus,
+                BorrowAmount = dto.BorrowAmount,
+                NotSure = dto.NotSure,
+                Email = dto.Email,
+                Phone = dto.Phone
+            };
 
+            _dbContext.Questionnaires.Add(questionnaire);
+            await _dbContext.SaveChangesAsync();
+
+            return questionnaire;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving questionnaire");
+            throw;
+        }
+    }
     public async Task<Vehicle> AddVehicleAsync(Vehicle vehicle)
     {
         try

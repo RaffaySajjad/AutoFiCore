@@ -22,4 +22,5 @@ public interface IVehicleRepository
     Task<Dictionary<string, int>> GetGearboxCountsAsync(VehicleFilterDto filterDto);
     Task<Dictionary<string, int>> GetColorsCountsAsync(VehicleFilterDto filterDto);
     Task<List<string>> GetColorsAsync();
+    Task<Questionnaire> SaveQuestionnaireAsync(QuestionnaireDTO dto);
 }
