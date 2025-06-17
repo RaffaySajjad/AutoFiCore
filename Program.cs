@@ -12,7 +12,11 @@ using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+ConfigurationValidator.ValidateProductionSecrets(builder.Configuration, builder.Environment);
+
 QuestPDF.Settings.License = LicenseType.Community;
+
+builder.Services.AddMemoryCache();
 
 // Configure logging
 builder.Logging.ClearProviders();
@@ -40,6 +44,10 @@ builder.Services.AddCors(options =>
 var databaseSettings = builder.Configuration.GetSection("DatabaseSettings").Get<DatabaseSettings>()
     ?? throw new InvalidOperationException("Database settings are not configured properly.");
 builder.Services.AddSingleton(databaseSettings);
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(databaseSettings.ConnectionString, name: "database")
+    .AddCheck<VehicleServiceHealthCheck>("vehicle-service");
 
 // Configure API settings
 var apiSettings = builder.Configuration.GetSection("ApiSettings").Get<ApiSettings>()
@@ -94,9 +102,11 @@ if (apiSettings.UseMockApi)
 else
 {
     builder.Services.AddScoped<IVehicleRepository, DbVehicleRepository>();
+    builder.Services.AddScoped<CachedVehicleRepository>();
     builder.Services.AddScoped<IContactInfoRepository, DbContactInfoRepository>();
     builder.Services.AddScoped<IUserRepository, DbUserRepository>();
 }
+
 
 // Register user service
 builder.Services.AddScoped<IUserService, UserService>();
@@ -112,6 +122,9 @@ builder.Services.AddScoped<IPdfService, PdfService>();
 
 // Register vehicle service
 builder.Services.AddScoped<IVehicleService, VehicleService>();
+
+// Register vehicle health check service
+builder.Services.AddScoped<VehicleServiceHealthCheck>();
 
 // Register contact info service
 builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
@@ -142,6 +155,11 @@ builder.Services.AddAuthentication("Bearer")
     });
 
 var app = builder.Build();
+
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/ready");
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Initialize database
 await DbInitializer.InitializeAsync(app.Services, app.Environment);

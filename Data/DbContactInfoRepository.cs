@@ -17,18 +17,9 @@ namespace AutoFiCore.Data
         }
         public async Task<ContactInfo> AddContactInfoAsync(ContactInfo contactInfo)
         {
-           try
-            {
-                _dbContext.ContactInfos.Add(contactInfo);
-                await _dbContext.SaveChangesAsync();
-                return contactInfo;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding contact info");
-                throw;
-
-            }
+            _dbContext.ContactInfos.Add(contactInfo);
+            await _dbContext.SaveChangesAsync();
+            return contactInfo;
         }
     }
 }

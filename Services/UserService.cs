@@ -31,120 +31,39 @@ namespace AutoFiCore.Services
 
         public async Task<User?> AddUserAsync(User user)
         {
-            try
-            {
-                return await _repository.AddUserAsync(user);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding new user");
-                throw;
-
-            }
+            return await _repository.AddUserAsync(user);
         }
         public async Task<AuthResponse?> LoginUserAsync(string email, string password)
         {
-            try
-            {
-                return await _repository.LoginUserAsync(email, password, _tokenProvider);
-
-            } catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error logging in user");
-                throw;
-            }
+            return await _repository.LoginUserAsync(email, password, _tokenProvider);
         }
         public async Task<UserLikes> AddUserLikeAsync(UserLikes userLikes)
         {
-            try
-            {
-
-                return await _repository.AddUserLikeAsync(userLikes);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding user like");
-                throw;
-            }
+            return await _repository.AddUserLikeAsync(userLikes);
         }
         public async Task<UserLikes?> RemoveUserLikeAsync(UserLikes userLikes)
         {
-            try
-            {
-                return await _repository.RemoveUserLikeAsync(userLikes);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error removing user like");
-                throw;
-            }
+            return await _repository.RemoveUserLikeAsync(userLikes);
         }
-
         public async Task<UserSavedSearch?> RemoveSavedSearchAsync(UserSavedSearch savedSearch)
         {
-            try
-            {
-                return await _repository.RemoveUserSearchAsync(savedSearch);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error removing saved search");
-                throw;
-            }
+            return await _repository.RemoveUserSearchAsync(savedSearch);
         }
-
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            try
-            {
-                return await _repository.GetUserByIdAsync(id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving user with ID {Id}", id);
-                throw;
-            }
+            return await _repository.GetUserByIdAsync(id);
         }
-
         public async Task<UserSavedSearch> AddUserSearchAsync(UserSavedSearch search)
         {
-            try
-            {
-                return await _repository.AddUserSearchAsync(search);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving user search");
-                throw;
-            }
+            return await _repository.AddUserSearchAsync(search);
         }
         public async Task<List<string>> GetUserLikedVinsAsync (int id)
         {
-            try
-            {
-                return await _repository.GetUserLikesVehicles(id);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching user liked vins");
-                throw;
-            }
+            return await _repository.GetUserLikesVehicles(id);
         }
         public async Task<List<string>> GetUserSavedSearches(int id)
         {
-            try
-            {
-                return await _repository.GetUserSavedSearches(id);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching user saved searches");
-                throw;
-            }
+            return await _repository.GetUserSavedSearches(id);
         }
     }
 }

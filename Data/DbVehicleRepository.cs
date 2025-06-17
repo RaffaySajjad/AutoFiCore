@@ -16,12 +16,10 @@ namespace AutoFiCore.Data;
 
 public class DbVehicleRepository : IVehicleRepository
 {
+
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<DbVehicleRepository> _logger;
     private readonly IWebHostEnvironment _hostingEnvironment;
-    private DateTime _lastCacheTimeColors;
-    private readonly TimeSpan _cacheDurationColors = TimeSpan.FromMinutes(60);
-    private static List<string>? _cachedColors;
     public DbVehicleRepository(ApplicationDbContext dbContext, ILogger<DbVehicleRepository> logger, IWebHostEnvironment hostingEnvironment)
     {
         _dbContext = dbContext;
@@ -35,66 +33,47 @@ public class DbVehicleRepository : IVehicleRepository
 
         return carFeatures.FirstOrDefault(c => string.Equals(c.Make, make, StringComparison.OrdinalIgnoreCase) && string.Equals(c.Model, model, StringComparison.OrdinalIgnoreCase));
     }
-
     public async Task<List<VehicleModelJSON>> GetAllCarFeaturesAsync()
     {
-        try
+        var rootPath = _hostingEnvironment.ContentRootPath;
+        var fullPath = Path.Combine(rootPath, "Data", "car-features.json");
+
+        if (!System.IO.File.Exists(fullPath))
         {
-            var rootPath = _hostingEnvironment.ContentRootPath;
-            var fullPath = Path.Combine(rootPath, "Data", "car-features.json");
-
-            if (!System.IO.File.Exists(fullPath))
-            {
-                _logger.LogWarning("Data file not found at path: {Path}", fullPath);
-                return new List<VehicleModelJSON>();
-            }
-
-            var jsonData = await System.IO.File.ReadAllTextAsync(fullPath);
-
-            if (string.IsNullOrWhiteSpace(jsonData))
-            {
-                _logger.LogWarning("Data file is empty: {Path}", fullPath);
-                return new List<VehicleModelJSON>();
-            }
-
-            var carFeatures = JsonConvert.DeserializeObject<List<VehicleModelJSON>>(jsonData);
-
-            return carFeatures ?? new List<VehicleModelJSON>();
+            _logger.LogWarning("Data file not found at path: {Path}", fullPath);
+            return new List<VehicleModelJSON>();
         }
-        catch (Exception ex)
+
+        var jsonData = await System.IO.File.ReadAllTextAsync(fullPath);
+
+        if (string.IsNullOrWhiteSpace(jsonData))
         {
-            _logger.LogError(ex, "Error retrieving car features");
-            throw;
+            _logger.LogWarning("Data file is empty: {Path}", fullPath);
+            return new List<VehicleModelJSON>();
         }
+
+        var carFeatures = JsonConvert.DeserializeObject<List<VehicleModelJSON>>(jsonData);
+
+        return carFeatures ?? new List<VehicleModelJSON>();
     }
-
     public async Task<VehicleListResult> GetAllVehiclesByStatusAsync(int pageView, int offset, string? status = null)
     {
-        try
+        IQueryable<Vehicle> query = _dbContext.Vehicles.OrderBy(v => v.Id);
+
+        if (!string.IsNullOrEmpty(status))
         {
-            IQueryable<Vehicle> query = _dbContext.Vehicles.OrderBy(v => v.Id);
-
-            if (!string.IsNullOrEmpty(status))
-            {
-                query = query.Where(v => v.Status == status);
-            }
-            var totalVehicles = await query.CountAsync();
-
-            var res = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
-
-            return new VehicleListResult
-            {
-                Vehicles = res,
-                TotalCount = totalVehicles
-            };
+            query = query.Where(v => v.Status == status);
         }
-        catch (Exception ex)
+        var totalVehicles = await query.CountAsync();
+
+        var res = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
+
+        return new VehicleListResult
         {
-            _logger.LogError(ex, "Error retrieving all vehicles");
-            throw;
-        }
+            Vehicles = res,
+            TotalCount = totalVehicles
+        };
     }
-
     public async Task<List<string>> GetAllVehicleMakes()
     {
         var makes = await _dbContext.Vehicles
@@ -105,92 +84,49 @@ public class DbVehicleRepository : IVehicleRepository
 
         return await Task.FromResult(makes);
     }
-
     public async Task<VehicleListResult> GetVehiclesByMakeAsync(int pageView, int offset, string make)
     {
-        try
+        var query = _dbContext.Vehicles.AsNoTracking().Where(v => v.Make == make).OrderBy(v => v.Id);
+
+        var totalVehicles = await query.CountAsync();
+
+        var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
+
+        return new VehicleListResult
         {
-            var query = _dbContext.Vehicles.AsNoTracking().Where(v => v.Make == make).OrderBy(v => v.Id);
-
-            var totalVehicles = await query.CountAsync();
-
-            var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
-
-            return new VehicleListResult
-            {
-                Vehicles = vehicles,
-                TotalCount = totalVehicles
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving vehicles by make: {make}");
-            throw;
-        }
+            Vehicles = vehicles,
+            TotalCount = totalVehicles
+        };
     }
-
     public async Task<VehicleListResult> GetVehiclesByModelAsync(int pageView, int offset, string model)
     {
-        try
-        {
-            var query = _dbContext.Vehicles.Where(v => v.Model == model).OrderBy(v => v.Id);
-            var totalVehicles = await query.CountAsync();
+        var query = _dbContext.Vehicles.Where(v => v.Model == model).OrderBy(v => v.Id);
+        var totalVehicles = await query.CountAsync();
 
-            var result = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
+        var result = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
-            return new VehicleListResult
-            {
-                Vehicles = result,
-                TotalCount = totalVehicles
-            };
-        }
-        catch (Exception ex)
+        return new VehicleListResult
         {
-            _logger.LogError(ex, $"Error retrieving vehicles by model: {model}");
-            throw;
-        }
+            Vehicles = result,
+            TotalCount = totalVehicles
+        };
     }
     public async Task<List<string>> GetDistinctColorsAsync()
     {
-        try
-        {
             return await _dbContext.Vehicles
             .Where(v => !string.IsNullOrEmpty(v.Color))
             .Select(v => v.Color!)
             .Distinct()
             .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving car colors");
-            throw;
-        }
-    }
-    public async Task<List<string>> GetColorsAsync()
-    {
-        if (_cachedColors != null && DateTime.UtcNow - _lastCacheTimeColors < _cacheDurationColors)
-            return _cachedColors;
-
-        _cachedColors = await GetDistinctColorsAsync();
-        _lastCacheTimeColors = DateTime.UtcNow;
-        return _cachedColors;
     }
     public async Task<List<Vehicle>> SearchVehiclesAsync(VehicleFilterDto filters, int pageView, int offset, string? sortOrder=null)
     {
-        try
-        {
-            var query = _dbContext.Vehicles.AsNoTracking();
-            var filteredQuery = VehicleQuery.ApplyFilters(query, filters.Make, filters.Model, filters.StartPrice, filters.EndPrice, filters.Mileage, filters.StartYear, filters.EndYear, filters.Gearbox, filters.SelectedColors, filters.Status);
-            query = VehicleQuery.ApplySorting(filteredQuery, sortOrder);
-            var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
+        var query = _dbContext.Vehicles.AsNoTracking();
+        var filteredQuery = VehicleQuery.ApplyFilters(query, filters.Make, filters.Model, filters.StartPrice, filters.EndPrice, filters.Mileage, filters.StartYear, filters.EndYear, filters.Gearbox, filters.SelectedColors, filters.Status);
+        query = VehicleQuery.ApplySorting(filteredQuery, sortOrder);
+        var vehicles = await VehicleQuery.GetPaginatedVehiclesAsync(query, offset, pageView);
 
-            return vehicles;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching vehicles");
-            throw;
-        }
+        return vehicles;
     }
     public async Task<int> GetTotalCountAsync(VehicleFilterDto filterDto)
     {
@@ -210,109 +146,55 @@ public class DbVehicleRepository : IVehicleRepository
         var filteredQuery = VehicleQuery.ApplyFilters(query, filterDto.Make, filterDto.Model, filterDto.StartPrice, filterDto.EndPrice, filterDto.Mileage, filterDto.StartYear, filterDto.EndYear, filterDto.Gearbox, filterDto.SelectedColors, filterDto.Status);
         return await VehicleQuery.GetSelectedColorCounts(filteredQuery);
     }
-
     public async Task<Vehicle?> GetVehicleByIdAsync(int id)
     {
-        try
-        {
-            return await _dbContext.Vehicles.FindAsync(id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving vehicle with ID {Id}", id);
-            throw;
-        }
+        return await _dbContext.Vehicles.FindAsync(id);
     }
     public async Task<Vehicle?> GetVehicleByVinAsync(string Vin)
     {
-        try
-        {
-            return await _dbContext.Vehicles.FirstOrDefaultAsync(v => v.Vin == Vin);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving vehicle with  {Vin}", Vin);
-            throw;
-        }
+        return await _dbContext.Vehicles.FirstOrDefaultAsync(v => v.Vin == Vin);
     }
     public async Task<Questionnaire> SaveQuestionnaireAsync(QuestionnaireDTO dto)
     {
-        try
+        var questionnaire = new Questionnaire
         {
-            var questionnaire = new Questionnaire
-            {
-                DrivingLicense = dto.DrivingLicense,
-                MaritalStatus = dto.MaritalStatus,
-                DOB = dto.DOB,
-                EmploymentStatus = dto.EmploymentStatus,
-                BorrowAmount = dto.BorrowAmount,
-                NotSure = dto.NotSure,
-                Email = dto.Email,
-                Phone = dto.Phone
-            };
+            DrivingLicense = dto.DrivingLicense,
+            MaritalStatus = dto.MaritalStatus,
+            DOB = dto.DOB,
+            EmploymentStatus = dto.EmploymentStatus,
+            BorrowAmount = dto.BorrowAmount,
+            NotSure = dto.NotSure,
+            Email = dto.Email,
+            Phone = dto.Phone
+        };
 
-            _dbContext.Questionnaires.Add(questionnaire);
-            await _dbContext.SaveChangesAsync();
+        _dbContext.Questionnaires.Add(questionnaire);
+        await _dbContext.SaveChangesAsync();
 
-            return questionnaire;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving questionnaire");
-            throw;
-        }
+        return questionnaire;
     }
     public async Task<Vehicle> AddVehicleAsync(Vehicle vehicle)
     {
-        try
-        {
-            _dbContext.Vehicles.Add(vehicle);
-            await _dbContext.SaveChangesAsync();
-            return vehicle;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding vehicle with VIN {Vin}", vehicle.Vin);
-            throw;
-        }
+        _dbContext.Vehicles.Add(vehicle);
+        await _dbContext.SaveChangesAsync();
+        return vehicle;
     }
-
     public async Task<bool> UpdateVehicleAsync(Vehicle vehicle)
     {
-        try
-        {
-            _dbContext.Entry(vehicle).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
-            return true;
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!VehicleExists(vehicle.Id))
-                return false;
-
-            throw;
-        }
+        _dbContext.Entry(vehicle).State = EntityState.Modified;
+        await _dbContext.SaveChangesAsync();
+        return true;
     }
-
     public async Task<bool> DeleteVehicleAsync(int id)
     {
-        try
-        {
-            var vehicle = await _dbContext.Vehicles.FindAsync(id);
-            if (vehicle == null)
-                return false;
+        var vehicle = await _dbContext.Vehicles.FindAsync(id);
+        if (vehicle == null)
+            return false;
 
-            _dbContext.Vehicles.Remove(vehicle);
-            await _dbContext.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting vehicle with ID {Id}", id);
-            throw;
-        }
+        _dbContext.Vehicles.Remove(vehicle);
+        await _dbContext.SaveChangesAsync();
+        return true;
     }
-
     private bool VehicleExists(int id)
     {
         return _dbContext.Vehicles.Any(v => v.Id == id);

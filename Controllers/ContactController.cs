@@ -20,26 +20,15 @@ namespace AutoFiCore.Controllers
 
         public async Task<ActionResult<ContactInfo>> AddContactInfo([FromBody] ContactInfo contactInfo)
         {
-            try
-            {
-                var errors = Validator.ValidateContactInfo(contactInfo);
+            var errors = Validator.ValidateContactInfo(contactInfo);
 
-                if (errors.Any())
-                {
-                    return BadRequest(new { errors });
-                }
-
-                var addedContact = await _contactInfoService.AddContactInfoAsync(contactInfo);
-                return Ok(addedContact);
-            }
-            catch (Exception ex)
+            if (errors.Any())
             {
-                return StatusCode(500, new
-                {
-                    message = "An error occurred while saving contact info.",
-                    error = ex.Message
-                });
+                return BadRequest(new { errors });
             }
+
+            var addedContact = await _contactInfoService.AddContactInfoAsync(contactInfo);
+            return Ok(addedContact);
         }
 
     }

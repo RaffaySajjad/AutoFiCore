@@ -21,16 +21,7 @@ namespace AutoFiCore.Services
 
         public async Task<ContactInfo> AddContactInfoAsync(ContactInfo contactInfo)
         {
-           try
-            {
-                return await _repository.AddContactInfoAsync(contactInfo);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding contact info");
-                throw;
-
-            }
+            return await _repository.AddContactInfoAsync(contactInfo);
         }
     }
 }
