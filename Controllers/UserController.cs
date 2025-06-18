@@ -10,12 +10,12 @@ namespace AutoFiCore.Controllers
     [ApiController]
     [Route("[controller]")]
 
-    public class UserController:ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
         private readonly IVehicleService _vehicleService;
 
-        public UserController (IUserService userService, IVehicleService vehicleService)
+        public UserController(IUserService userService, IVehicleService vehicleService)
         {
             _userService = userService;
             _vehicleService = vehicleService;
@@ -32,11 +32,12 @@ namespace AutoFiCore.Controllers
 
 
             var addedUser = await _userService.AddUserAsync(user);
-            if (addedUser == null) {
+            if (addedUser == null)
+            {
                 return Conflict(new { message = "Email already exists. " });
             }
             return Ok(addedUser);
-          
+
         }
 
         [HttpPost("login")]
@@ -121,20 +122,20 @@ namespace AutoFiCore.Controllers
             var user = await _userService.GetUserByIdAsync(search.userId);
             if (user == null)
                 return NotFound($"User with ID {search.userId} not found");
-                 
+
 
             var savedSearch = await _userService.RemoveSavedSearchAsync(search);
             if (savedSearch == null)
                 return NotFound($"Search {search.search} with User ID {search.userId} not found");
             return Ok(savedSearch);
-          
+
         }
 
         [Authorize]
         [HttpPost("save-search")]
         public async Task<ActionResult<UserSavedSearch>> SaveUserSearch([FromBody] UserSavedSearch search)
         {
-         
+
             var user = await _userService.GetUserByIdAsync(search.userId);
             if (user == null)
                 return NotFound($"User with ID {search.userId} not found");
@@ -145,17 +146,24 @@ namespace AutoFiCore.Controllers
 
         [Authorize]
         [HttpPost("add-interaction")]
-        public async Task<ActionResult<UserInteractions>> AddUserInteraction([FromBody] UserInteractions userInteraction)
+        public async Task<ActionResult<UserInteractionsDTO>> AddUserInteraction([FromBody] UserInteractions userInteraction)
         {
             var user = await _userService.GetUserByIdAsync(userInteraction.UserId);
             if (user == null)
-               return NotFound($"User with ID {userInteraction.UserId} not found");
+                return NotFound($"User with ID {userInteraction.UserId} not found");
             var vehicle = await _vehicleService.GetVehicleByIdAsync(userInteraction.VehicleId);
             if (vehicle == null)
                 return NotFound($"Vehicle with ID {userInteraction.VehicleId} not found");
 
             var savedInteraction = await _userService.AddUserInteractionAsync(userInteraction);
-            return Ok(savedInteraction);
+            return Ok(new UserInteractionsDTO
+            {
+                Id = savedInteraction.Id,
+                UserId = savedInteraction.UserId,
+                VehicleId = savedInteraction.VehicleId,
+                InteractionType = savedInteraction.InteractionType,
+                CreatedAt = savedInteraction.CreatedAt
+            });
         }
     }
 }

@@ -71,6 +71,5 @@ namespace AutoFiCore.Services
         {
             return await _repository.AddUserInteraction(userInteractions);
         }
-
     }
 }
