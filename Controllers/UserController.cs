@@ -142,5 +142,20 @@ namespace AutoFiCore.Controllers
             var savedSearch = await _userService.AddUserSearchAsync(search);
             return Ok(savedSearch);
         }
+
+        [Authorize]
+        [HttpPost("add-interaction")]
+        public async Task<ActionResult<UserInteractions>> AddUserInteraction([FromBody] UserInteractions userInteraction)
+        {
+            var user = await _userService.GetUserByIdAsync(userInteraction.UserId);
+            if (user == null)
+               return NotFound($"User with ID {userInteraction.UserId} not found");
+            var vehicle = await _vehicleService.GetVehicleByIdAsync(userInteraction.VehicleId);
+            if (vehicle == null)
+                return NotFound($"Vehicle with ID {userInteraction.VehicleId} not found");
+
+            var savedInteraction = await _userService.AddUserInteractionAsync(userInteraction);
+            return Ok(savedInteraction);
+        }
     }
 }

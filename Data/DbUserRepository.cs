@@ -39,6 +39,12 @@ namespace AutoFiCore.Data
             await _dbContext.SaveChangesAsync();
             return user;
         }
+        public async Task<UserInteractions> AddUserInteraction(UserInteractions userInteractions)
+        {
+            _dbContext.UserInteractions.Add(userInteractions);
+            await _dbContext.SaveChangesAsync();
+            return userInteractions;
+        }
         public async Task<UserSavedSearch> AddUserSearchAsync(UserSavedSearch search)
         {
             _dbContext.UserSavedSearches.Add(search);

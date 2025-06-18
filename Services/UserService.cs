@@ -1,6 +1,7 @@
 ﻿using AutoFiCore.Data;
 using AutoFiCore.Dto;
 using AutoFiCore.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace AutoFiCore.Services
 {
@@ -15,6 +16,7 @@ namespace AutoFiCore.Services
         Task<UserSavedSearch> AddUserSearchAsync(UserSavedSearch search);
         Task<UserSavedSearch?> RemoveSavedSearchAsync(UserSavedSearch savedSearch);
         Task<List<string>> GetUserSavedSearches(int id);
+        Task<UserInteractions> AddUserInteractionAsync(UserInteractions userInteractions);
     }
 
     public class UserService:IUserService
@@ -65,5 +67,10 @@ namespace AutoFiCore.Services
         {
             return await _repository.GetUserSavedSearches(id);
         }
+        public async Task<UserInteractions> AddUserInteractionAsync(UserInteractions userInteractions)
+        {
+            return await _repository.AddUserInteraction(userInteractions);
+        }
+
     }
 }

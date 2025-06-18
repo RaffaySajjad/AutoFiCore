@@ -25,6 +25,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Measurements> Measurements { get; set; }
     public DbSet<VehicleOptions> VehicleOptions { get; set; }
 
+    public DbSet<UserInteractions> UserInteractions { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -61,6 +63,15 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Questionnaire>(entity =>
         {
             entity.HasKey(q => q.Id);
+        });
+
+        modelBuilder.Entity<UserInteractions>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.InteractionType).IsRequired().HasMaxLength(50);
+            entity.Property(u => u.CreatedAt).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(u => u.User).WithMany().HasForeignKey(u => u.UserId);
+            entity.HasOne(u => u.Vehicle).WithMany().HasForeignKey(u => u.VehicleId);
         });
 
         modelBuilder.Entity<User>(entity =>

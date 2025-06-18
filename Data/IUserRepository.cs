@@ -1,5 +1,6 @@
 ﻿using AutoFiCore.Dto;
 using AutoFiCore.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace AutoFiCore.Data
 {
@@ -14,5 +15,6 @@ namespace AutoFiCore.Data
         Task<UserSavedSearch> AddUserSearchAsync(UserSavedSearch search);
         Task<UserSavedSearch?> RemoveUserSearchAsync(UserSavedSearch search);
         Task<List<string>> GetUserSavedSearches(int id);
+        Task<UserInteractions> AddUserInteraction(UserInteractions userInteractions);
     }
 }
