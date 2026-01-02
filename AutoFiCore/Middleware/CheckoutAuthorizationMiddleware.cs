@@ -17,6 +17,14 @@ public class CheckoutAuthorizationMiddleware
     {
         var path = context.Request.Path.Value ?? "";
 
+        // Skip healthcheck endpoints
+        if (path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) || 
+            path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase))
+        {
+            await _next(context);
+            return;
+        }
+
         if (path.StartsWith("/auction/") && path.EndsWith("/checkout", StringComparison.OrdinalIgnoreCase))
         {
             var segments = path.Split('/');

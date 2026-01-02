@@ -420,19 +420,19 @@ builder.Services.AddFluentValidationAutoValidation();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-var jwtSecret = builder.Configuration["Jwt:Secret"];
+var jwtSecret = builder.Configuration["Jwt:Secret"]?.Trim();
 // Override with environment variable if available (for Railway deployment)
-if (string.IsNullOrEmpty(jwtSecret))
+if (string.IsNullOrWhiteSpace(jwtSecret))
 {
-    jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+    jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")?.Trim();
 }
-if (string.IsNullOrEmpty(jwtSecret))
+if (string.IsNullOrWhiteSpace(jwtSecret))
     throw new InvalidOperationException("JWT Secret key is missing in configuration and JWT_SECRET environment variable.");
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
-        var jwtSecret = builder.Configuration["Jwt:Secret"];
+        // Use the validated jwtSecret variable, not configuration
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -450,15 +450,33 @@ builder.Services.AddAuthentication("Bearer")
         {
             OnMessageReceived = context =>
             {
-                var accessToken = context.Request.Query["access_token"];
-
                 var path = context.HttpContext.Request.Path;
+                
+                // Skip authentication for healthcheck and swagger endpoints
+                if (path.StartsWithSegments("/health") || path.StartsWithSegments("/swagger"))
+                {
+                    context.NoResult();
+                    return Task.CompletedTask;
+                }
+
+                var accessToken = context.Request.Query["access_token"];
                 if (!string.IsNullOrEmpty(accessToken) &&
                     path.StartsWithSegments("/hubs/auction"))
                 {
                     context.Token = accessToken;
                 }
 
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                // Skip challenge for healthcheck endpoints
+                var path = context.Request.Path;
+                if (path.StartsWithSegments("/health") || path.StartsWithSegments("/swagger"))
+                {
+                    context.HandleResponse();
+                    return Task.CompletedTask;
+                }
                 return Task.CompletedTask;
             }
         };
