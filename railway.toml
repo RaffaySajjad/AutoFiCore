@@ -8,7 +8,7 @@ watchPatterns = ["AutoFiCore/**"]
 
 [deploy]
 # Health check endpoint
-healthcheckPath = "/health"
+healthcheckPath = "/health/live"
 # Health check timeout in seconds
 healthcheckTimeout = 30
 # Restart policy

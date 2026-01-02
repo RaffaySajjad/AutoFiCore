@@ -534,6 +534,9 @@ app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.Health
     }
 });
 
+// Liveness check
+app.MapGet("/health/live", () => Results.Ok(new { status = "alive", timestamp = DateTime.UtcNow }));
+
 
 StartupValidator.ValidateEnvironment(builder.Configuration, app.Environment);
 
