@@ -23,6 +23,15 @@ namespace AutoFiCore.Middleware
 
         public async Task InvokeAsync(HttpContext context, IRefreshTokenService refreshTokenService, ITokenProvider tokenProvider, IUserService userService)
         {
+            // Skip authentication for healthcheck endpoints
+            var path = context.Request.Path.Value;
+            if (path != null && (path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) || 
+                                path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase)))
+            {
+                await _next(context);
+                return;
+            }
+
             var endpoint = context.GetEndpoint();
             if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() != null)
             {

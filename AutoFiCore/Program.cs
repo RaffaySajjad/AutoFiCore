@@ -519,7 +519,7 @@ app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
 
         await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
     }
-});
+}).AllowAnonymous();
 
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
@@ -532,10 +532,11 @@ app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.Health
         context.Response.ContentType = "text/plain";
         await context.Response.WriteAsync(report.Status.ToString());
     }
-});
+}).AllowAnonymous();
 
-// Liveness check
-app.MapGet("/health/live", () => Results.Ok(new { status = "alive", timestamp = DateTime.UtcNow }));
+// Liveness check - must allow anonymous for Railway healthchecks
+app.MapGet("/health/live", () => Results.Ok(new { status = "alive", timestamp = DateTime.UtcNow }))
+    .AllowAnonymous();
 
 
 StartupValidator.ValidateEnvironment(builder.Configuration, app.Environment);
